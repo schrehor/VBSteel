@@ -24,8 +24,16 @@ public class FormController : ControllerBase
 
 		formData.Id = Guid.NewGuid();
 		_databaseContext.FormData.Add(formData);
-		await _databaseContext.SaveChangesAsync();
-
+		try
+		{
+			await _databaseContext.SaveChangesAsync();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+		
 		return Ok("Form data submitted successfully!");
 	}
 
