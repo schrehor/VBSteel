@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBSteel.Server", "VBSteel\Server\VBSteel.Server.csproj", "{7DCF8E89-1873-4CE1-91DB-98420E701F63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBSteel.Server", "VBSteel\Server\VBSteel.Server.csproj", "{7DCF8E89-1873-4CE1-91DB-98420E701F63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBSteel.Client", "VBSteel\Client\VBSteel.Client.csproj", "{510379DC-5901-4259-BFED-AF1FC71BA062}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBSteel.Client", "VBSteel\Client\VBSteel.Client.csproj", "{510379DC-5901-4259-BFED-AF1FC71BA062}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBSteel.Shared", "VBSteel\Shared\VBSteel.Shared.csproj", "{8D265DB1-22E1-4141-AAE0-340259CB7A03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBSteel.Shared", "VBSteel\Shared\VBSteel.Shared.csproj", "{8D265DB1-22E1-4141-AAE0-340259CB7A03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
