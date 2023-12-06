@@ -3,19 +3,32 @@
 <body class="pic-back">
 <div class="container">
 	<div class="row">
-			<div class="col-md-6 py-5">
-			<form>
+		<div class="col-md-6 py-5">
+				<form @onsubmit="HandleSubmit">
+				@if (IsNameInvalid && NameTouched)
+				{
+					<div class="alert alert-danger" role="alert">
+						Please enter a valid name (1 or 2 words with max 1 space and no numbers or special characters).
+					</div>
+				}
 				<div class="mb-3">
 					<label for="nameInput" class="form-label">Name:</label>
 					<input type="text" class="form-control" id="nameInput" @bind="Name"/>
+					<ValidationMessage For="@(() => Name)"/>
 				</div>
-
+				@if (IsTextInvalid && TextTouched)
+				{
+					<div class="alert alert-danger" role="alert">
+						Please enter text in the field.
+					</div>
+				}
 				<div class="mb-3">
 					<label for="textInput" class="form-label">Text:</label>
 					<textarea class="form-control" id="textInput" @bind="Text"></textarea>
+					<ValidationMessage For="@(() => Text)"/>
 				</div>
 
-				<button type="submit" class="btn btn-primary">Submit</button>
+					<button type="submit" class="btn btn-primary">Submit</button>
 			</form>
 		</div>
 		<div class="col-md-6">
@@ -41,4 +54,58 @@
 @code {
 	private string Name { get; set; }
 	private string Text { get; set; }
+	private bool NameTouched { get; set; }
+	private bool TextTouched { get; set; }
+
+	private bool IsNameInvalid => !IsValidName();
+	private bool IsTextInvalid => !IsValidText();
+
+	private void ValidateForm()
+	{
+		NameTouched = true;
+		TextTouched = true;
+
+		if (IsValidName() && IsValidText())
+		{
+	// Both Name and Text fields are valid
+	// Proceed with form submission or other actions
+		}
+	}
+
+	private bool IsValidName()
+	{
+		if (string.IsNullOrWhiteSpace(Name))
+		{
+			return false;
+		}
+
+		var words = Name.Trim().Split(' ');
+		return words.Length >= 1 && words.Length <= 2 && !words.Any(w => !IsAlphaCharacters(w));
+	}
+
+	private bool IsAlphaCharacters(string value)
+	{
+		return !string.IsNullOrEmpty(value) && value.All(char.IsLetter);
+	}
+
+	private bool IsValidText()
+	{
+		return !string.IsNullOrWhiteSpace(Text);
+	}
+
+	private async Task HandleSubmit()
+	{
+		NameTouched = true;
+		TextTouched = true;
+
+		if (IsValidName() && IsValidText())
+		{
+	// Both Name and Text fields are valid
+	// Proceed with form submission or other actions
+            
+	// To prevent the default form submission behavior
+	// use 'await Task.Delay(1);' to simulate an asynchronous operation
+			await Task.Delay(1);
+		}
+	}
 }
