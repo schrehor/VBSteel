@@ -60,18 +60,6 @@
 	private bool IsNameInvalid => !IsValidName();
 	private bool IsTextInvalid => !IsValidText();
 
-	private void ValidateForm()
-	{
-		NameTouched = true;
-		TextTouched = true;
-
-		if (IsValidName() && IsValidText())
-		{
-	// Both Name and Text fields are valid
-	// Proceed with form submission or other actions
-		}
-	}
-
 	private bool IsValidName()
 	{
 		if (string.IsNullOrWhiteSpace(Name))
@@ -80,7 +68,7 @@
 		}
 
 		var words = Name.Trim().Split(' ');
-		return words.Length >= 1 && words.Length <= 2 && !words.Any(w => !IsAlphaCharacters(w));
+		return words.Length is >= 1 and <= 2 && words.All(IsAlphaCharacters);
 	}
 
 	private bool IsAlphaCharacters(string value)
@@ -100,12 +88,7 @@
 
 		if (IsValidName() && IsValidText())
 		{
-	// Both Name and Text fields are valid
-	// Proceed with form submission or other actions
-            
-	// To prevent the default form submission behavior
-	// use 'await Task.Delay(1);' to simulate an asynchronous operation
-			await Task.Delay(1);
+
 		}
 	}
 }
