@@ -1,6 +1,12 @@
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
+using VBSteel.Server;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<DatabaseContext>(options =>
+{
+	options.UseSqlite(builder.Configuration.GetConnectionString("database"));
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
