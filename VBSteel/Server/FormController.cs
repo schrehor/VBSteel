@@ -37,10 +37,10 @@ public class FormController : ControllerBase
 		return Ok("Form data submitted successfully!");
 	}
 
-	[HttpGet("{id}")]
+	[HttpGet("first")]
 	public async Task<IActionResult> GetFormDataById(Guid id)
 	{
-		var formData = await _databaseContext.FormData.FindAsync(id);
+		var formData = await _databaseContext.FormData.FirstOrDefaultAsync();
 
 		if (formData == null)
 		{

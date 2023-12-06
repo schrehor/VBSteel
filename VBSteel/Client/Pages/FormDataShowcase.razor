@@ -1,0 +1,60 @@
+﻿@page "/formdatashowcase"
+@using VBSteel.Server
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<h3>FormDataShowcase</h3>
+
+@if (formData != null)
+{
+	<div>
+		<p>
+			<label for="nameInput">Name:</label>
+			<input id="nameInput" @bind="formData.Name" />
+		</p>
+		<p>
+			<label for="textInput">Text:</label>
+			<input id="textInput" @bind="formData.Text" />
+		</p>
+
+		<button @onclick="UpdateForm">Update</button>
+		<button @onclick="DeleteForm">Delete</button>
+	</div>
+}
+else
+{
+	<p>No data found</p>
+}
+
+@code {
+	private FormData formData;
+
+	protected override async Task OnInitializedAsync()
+	{
+		formData = await HttpClient.GetFromJsonAsync<FormData>("https://localhost:7280/api/Form/first");
+	}
+
+	private async Task UpdateForm()
+	{
+		if (formData != null)
+		{
+			var response = await HttpClient.PutAsJsonAsync($"https://localhost:7280/api/Form/updateForm/{formData.Id}", formData);
+
+			if (response.IsSuccessStatusCode)
+			{
+				NavigationManager.NavigateTo("/formdatashowcase", forceLoad: true);
+			}
+			else
+			{
+			}
+		}
+	}
+
+	private async Task DeleteForm()
+	{
+		if (formData != null)
+		{
+			await HttpClient.DeleteAsync($"https://localhost:7280/api/Form/{formData.Id}");
+		}
+	}
+}
