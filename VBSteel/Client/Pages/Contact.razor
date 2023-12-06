@@ -1,24 +1,44 @@
 ﻿@page "/contact"
 
 <body class="pic-back">
-	<div class="container">
-		<div class="text-center py-5 bold">
-			<h1>Kde nás nájdete</h1>
-			<p>Poloha: Univerzitná 8215, 010 26 Žilina</p>
-			<p>telefón: +4219123456789</p>
-			<p>mail: info@vbsteel.sk</p>
-			<p>Otváracie hodiny:</p>
-			Pondelok: 7:00–15:00<br>
-			Utorok: 7:00–15:00<br>
-			Streda: 7:00–15:00<br>
-			Štvrtok: 7:00–15:00<br>
-			Piatok: 7:00–15:00<br>
-			Sobota: zatvorené<br>
-			Nedeľa: zatvorené
+<div class="container">
+	<div class="row">
+			<div class="col-md-6 py-5">
+			<form>
+				<div class="mb-3">
+					<label for="nameInput" class="form-label">Name:</label>
+					<input type="text" class="form-control" id="nameInput" @bind="Name"/>
+				</div>
+
+				<div class="mb-3">
+					<label for="textInput" class="form-label">Text:</label>
+					<textarea class="form-control" id="textInput" @bind="Text"></textarea>
+				</div>
+
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</form>
+		</div>
+		<div class="col-md-6">
+			<div class="text-center py-5 bold">
+				<h1>Kde nás nájdete</h1>
+				<p>Poloha: Univerzitná 8215, 010 26 Žilina</p>
+				<p>telefón: +4219123456789</p>
+				<p>mail: info@vbsteel.sk</p>
+				<p>Otváracie hodiny:</p>
+				Pondelok: 7:00–15:00<br>
+				Utorok: 7:00–15:00<br>
+				Streda: 7:00–15:00<br>
+				Štvrtok: 7:00–15:00<br>
+				Piatok: 7:00–15:00<br>
+				Sobota: zatvorené<br>
+				Nedeľa: zatvorené
+			</div>
 		</div>
 	</div>
+</div>
 </body>
 
 @code {
-
+	private string Name { get; set; }
+	private string Text { get; set; }
 }
