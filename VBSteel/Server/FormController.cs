@@ -17,7 +17,8 @@ public class FormController : ControllerBase
 	[HttpPost("submitForm")]
 	public async Task<IActionResult> SubmitForm(FormData formData)
 	{
-		if (!IsValidName(formData.Name) || !IsValidText(formData.Text))
+		if (formData.Text != null && formData.Name != null && 
+		    (!IsValidName(formData.Name) || !IsValidText(formData.Text)))
 		{
 			return BadRequest("Invalid form data.");
 		}
@@ -53,6 +54,7 @@ public class FormController : ControllerBase
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeleteFormData(Guid id)
 	{
+		
 		var formData = await _databaseContext.FormData.FindAsync(id);
 
 		if (formData == null)
@@ -69,6 +71,12 @@ public class FormController : ControllerBase
 	[HttpPut("updateForm/{id}")]
 	public async Task<IActionResult> UpdateFormData(Guid id, FormData updatedFormData)
 	{
+		if (updatedFormData.Text != null && updatedFormData.Name != null && 
+		    (!IsValidName(updatedFormData.Name) || !IsValidText(updatedFormData.Text)))
+		{
+			return BadRequest("Invalid form data.");
+		}
+		
 		if (id != updatedFormData.Id)
 		{
 			return BadRequest();
