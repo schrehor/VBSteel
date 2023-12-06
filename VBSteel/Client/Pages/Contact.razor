@@ -1,4 +1,5 @@
 ﻿@page "/contact"
+@using VBSteel.Server
 
 <body class="pic-back">
 <div class="container">
@@ -56,6 +57,7 @@
 	private string Text { get; set; }
 	private bool NameTouched { get; set; }
 	private bool TextTouched { get; set; }
+	private HttpClient httpClient = new HttpClient();
 
 	private bool IsNameInvalid => !IsValidName();
 	private bool IsTextInvalid => !IsValidText();
@@ -88,7 +90,19 @@
 
 		if (IsValidName() && IsValidText())
 		{
+			var formData = new FormData() { Name = Name, Text = Text };
 
+			HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", formData);
+
+			if (response.IsSuccessStatusCode)
+			{
+				var result = await response.Content.ReadAsStringAsync();
+				Console.WriteLine("Form submitted successfully: " + result);
+			}
+			else
+			{
+				Console.WriteLine("Failed to submit form.");
+			}
 		}
 	}
 }
