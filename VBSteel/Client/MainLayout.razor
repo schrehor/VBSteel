@@ -1,34 +1,52 @@
 ﻿@inherits LayoutComponentBase
 
 <main>
-	<nav class="navbar navbar-expand-lg menu">
-		<div class="container">
-			<a class="navbar-brand" href="/">
-				<img class="logo" src="images/icon.png" alt="Website Logo">
-				VBSteel
-			</a>
+	<div class="site-container">
+		<nav class="navbar navbar-expand-lg menu">
+			<div class="container">
+				<a class="navbar-brand" href="/">
+					<img class="logo" src="images/icon.png" alt="Website Logo">
+					VBSteel
+				</a>
 
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
 
-			<div class="collapse navbar-collapse" id="navbarNav">
-				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					<li class="nav-item">
-						<NavLink class="nav-link" href="/">Products</NavLink>
-					</li>
-					<li class="nav-item">
-						<NavLink class="nav-link" href="/about">About Us</NavLink>
-					</li>
-					<li class="nav-item">
-						<NavLink class="nav-link" href="/contact">Contact</NavLink>
-					</li>
-				</ul>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+						<li class="nav-item">
+							<NavLink class="nav-link" href="/">Products</NavLink>
+						</li>
+						<li class="nav-item">
+							<NavLink class="nav-link" href="/about">About Us</NavLink>
+						</li>
+						<li class="nav-item">
+							<NavLink class="nav-link" href="/contact">Contact</NavLink>
+						</li>
+					</ul>
+					<div class="d-flex">
+						<button class="btn btn-outline-success ms-auto" @onclick="NavigateToLogin">Login</button>
+						<NavLink class="btn btn-outline-primary ms-2" href="/register">Register</NavLink>
+					</div>
+				</div>
 			</div>
-		</div>
-	</nav>
-	@Body
-	<footer class="bg-dark text-light text-center py-3">
-		&copy; @DateTime.Now.Year VBSteel. All rights reserved.
-	</footer>
+		</nav>
+		@Body
+		<footer class="bg-dark text-light text-center py-3">
+			&copy; @DateTime.Now.Year VBSteel. All rights reserved.
+		</footer>
+	</div>
 </main>
+
+
+@code {
+	[Inject]
+	public NavigationManager NavigationManager { get; set; }
+
+	private void NavigateToLogin()
+	{
+		var returnUrl = NavigationManager.Uri;
+		NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+	}
+}
