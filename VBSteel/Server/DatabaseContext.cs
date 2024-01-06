@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using VBSteel.Shared;
 
 namespace VBSteel.Server;
 
@@ -8,5 +9,8 @@ public class DatabaseContext : DbContext
 	{
 	}
 
-	public DbSet<FormData> FormData { get; set; }
+	public DbSet<User> Users { get; set; }
+	public DbSet<Product> Products { get; set; }
+	public DbSet<Favorite> Favorites { get; set; }
+	public DbSet<Form> Forms { get; set; }
 }

@@ -1,11 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace VBSteel.Server;
+namespace VBSteel.Shared;
 
-[Table("Forms")]
-public class FormData
+public class Form
 {
-	public Guid Id { get; set; }
-	public string? Name { get; set; }
-	public string? Text { get; set; }
+	[Key]
+	public Guid FormId { get; set; }
+
+	public Guid? UserId { get; set; }
+
+	[Required, EmailAddress]
+	public string Email { get; set; }
+
+	[Required, StringLength(2000)]
+	public string Message { get; set; }
+
+	public User User { get; set; }
 }
