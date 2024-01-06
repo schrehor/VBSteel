@@ -1,5 +1,5 @@
 ﻿@page "/formdatashowcase"
-@using VBSteel.Server
+@using VBSteel.Shared
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 
@@ -9,12 +9,12 @@
 {
 	<div>
 		<p>
-			<label for="nameInput">Name:</label>
-			<input id="nameInput" @bind="formData.Name" />
+			<label for="nameInput">Email:</label>
+			<input id="nameInput" @bind="formData.Email" />
 		</p>
 		<p>
 			<label for="textInput">Text:</label>
-			<input id="textInput" @bind="formData.Text" />
+			<input id="textInput" @bind="formData.Message" />
 		</p>
 
 		<button @onclick="UpdateForm">Update</button>
@@ -27,18 +27,19 @@ else
 }
 
 @code {
-	private FormData formData;
+	//todo:Prerobit podla novej DB architektury
+	private Form formData;
 
 	protected override async Task OnInitializedAsync()
 	{
-		formData = await HttpClient.GetFromJsonAsync<FormData>("https://localhost:7280/api/Form/first");
+		formData = await HttpClient.GetFromJsonAsync<Form>("https://localhost:7280/api/Form/first");
 	}
 
 	private async Task UpdateForm()
 	{
 		if (formData != null)
 		{
-			var response = await HttpClient.PutAsJsonAsync($"https://localhost:7280/api/Form/updateForm/{formData.Id}", formData);
+			var response = await HttpClient.PutAsJsonAsync($"https://localhost:7280/api/Form/updateForm/{formData.FormId}", formData);
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -54,7 +55,7 @@ else
 	{
 		if (formData != null)
 		{
-			await HttpClient.DeleteAsync($"https://localhost:7280/api/Form/{formData.Id}");
+			await HttpClient.DeleteAsync($"https://localhost:7280/api/Form/{formData.FormId}");
 		}
 	}
 }

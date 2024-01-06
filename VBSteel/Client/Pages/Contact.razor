@@ -1,36 +1,24 @@
 ﻿@page "/contact"
-@using VBSteel.Server
+@inject HttpClient httpClient
+@using VBSteel.Shared
 
-<body class="pic-back content">
-<div class="container">
+<div class="container pic-back content">
 	<div class="row">
 		<div class="col-md-6 py-5">
-				<form @onsubmit="HandleSubmit">
-				@if (IsNameInvalid && NameTouched)
-				{
-					<div class="alert alert-danger" role="alert">
-						Please enter a valid name (1 or 2 words with max 1 space and no numbers or special characters).
-					</div>
-				}
+			<EditForm Model="@contactForm" OnValidSubmit="HandleSubmit">
 				<div class="mb-3">
-					<label for="nameInput" class="form-label">Name:</label>
-					<input type="text" class="form-control" id="nameInput" @bind="Name"/>
-					<ValidationMessage For="@(() => Name)"/>
+					<label for="nameInput" class="form-label">Email:</label>
+					<input type="text" class="form-control" id="nameInput" @bind="contactForm.Email"/>
+					<ValidationMessage For="@(() => contactForm.Email)"/>
 				</div>
-				@if (IsTextInvalid && TextTouched)
-				{
-					<div class="alert alert-danger" role="alert">
-						Please enter text in the field.
-					</div>
-				}
 				<div class="mb-3">
-					<label for="textInput" class="form-label">Text:</label>
-					<textarea class="form-control" id="textInput" @bind="Text"></textarea>
-					<ValidationMessage For="@(() => Text)"/>
+					<label for="textInput" class="form-label">Správa:</label>
+					<textarea class="form-control" id="textInput" @bind="contactForm.Message"></textarea>
+					<ValidationMessage For="@(() => contactForm.Message)"/>
 				</div>
 
-					<button type="submit" class="btn btn-primary">Submit</button>
-			</form>
+				<button type="submit" class="btn btn-primary">Odoslať</button>
+			</EditForm>
 		</div>
 		<div class="col-md-6">
 			<div class="text-center py-5 bold">
@@ -50,59 +38,44 @@
 		</div>
 	</div>
 </div>
-</body>
 
 @code {
-	private string Name { get; set; }
-	private string Text { get; set; }
-	private bool NameTouched { get; set; }
-	private bool TextTouched { get; set; }
-	private HttpClient httpClient = new HttpClient();
+	//todo:Prerobit podla novej DB architektury
+	private Form contactForm = new Form();
 
-	private bool IsNameInvalid => !IsValidName();
-	private bool IsTextInvalid => !IsValidText();
-
-	private bool IsValidName()
-	{
-		if (string.IsNullOrWhiteSpace(Name))
-		{
-			return false;
-		}
-
-		var words = Name.Trim().Split(' ');
-		return words.Length is >= 1 and <= 2 && words.All(IsAlphaCharacters);
-	}
+	// private bool IsValidName()
+	// {
+	// 	if (string.IsNullOrWhiteSpace(Name))
+	// 	{
+	// 		return false;
+	// 	}
+	//
+	// 	var words = Name.Trim().Split(' ');
+	// 	return words.Length is >= 1 and <= 2 && words.All(IsAlphaCharacters);
+	// }
 
 	private bool IsAlphaCharacters(string value)
 	{
 		return !string.IsNullOrEmpty(value) && value.All(char.IsLetter);
 	}
 
-	private bool IsValidText()
-	{
-		return !string.IsNullOrWhiteSpace(Text);
-	}
+	// private bool IsValidText()
+	// {
+	// 	return !string.IsNullOrWhiteSpace(Text);
+	// }
 
 	private async Task HandleSubmit()
 	{
-		NameTouched = true;
-		TextTouched = true;
+		HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", contactForm);
 
-		if (IsValidName() && IsValidText())
+		if (response.IsSuccessStatusCode)
 		{
-			var formData = new FormData() { Name = Name, Text = Text };
-
-			HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", formData);
-
-			if (response.IsSuccessStatusCode)
-			{
-				var result = await response.Content.ReadAsStringAsync();
-				Console.WriteLine("Form submitted successfully: " + result);
-			}
-			else
-			{
-				Console.WriteLine("Failed to submit form.");
-			}
+			var result = await response.Content.ReadAsStringAsync();
+			Console.WriteLine("Form submitted successfully: " + result);
+		}
+		else
+		{
+			Console.WriteLine("Failed to submit form.");
 		}
 	}
 }

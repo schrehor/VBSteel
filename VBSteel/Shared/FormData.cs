@@ -9,10 +9,12 @@ public class Form
 
 	public Guid? UserId { get; set; }
 
-	[Required, EmailAddress]
+	[Required(ErrorMessage = "Emailová adresa je povinná")]
+	[EmailAddress(ErrorMessage = "Neplatná emailová adresa")]
 	public string Email { get; set; }
 
-	[Required, StringLength(2000)]
+	[Required(ErrorMessage = "Telo správy nemôže byť prázdne")]
+	[StringLength(2000, ErrorMessage = "Maximálna dĺžka správy je 2000 znakov")]
 	public string Message { get; set; }
 
 	public User User { get; set; }

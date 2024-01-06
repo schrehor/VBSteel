@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VBSteel.Shared;
 
 namespace VBSteel.Server;
-
+//Todo: Prerobit podla novej DB architektury
 [ApiController]
 [Route("api/[controller]")]
 public class FormController : ControllerBase
@@ -15,16 +16,15 @@ public class FormController : ControllerBase
 	}
 	
 	[HttpPost("submitForm")]
-	public async Task<IActionResult> SubmitForm(FormData formData)
+	public async Task<IActionResult> SubmitForm(Form formData)
 	{
-		if (formData.Text != null && formData.Name != null && 
-		    (!IsValidName(formData.Name) || !IsValidText(formData.Text)))
+		if (!ModelState.IsValid)
 		{
 			return BadRequest("Invalid form data.");
 		}
 
-		formData.Id = Guid.NewGuid();
-		_databaseContext.FormData.Add(formData);
+		formData.FormId = Guid.NewGuid();
+		_databaseContext.Forms.Add(formData);
 		try
 		{
 			await _databaseContext.SaveChangesAsync();
@@ -41,7 +41,7 @@ public class FormController : ControllerBase
 	[HttpGet("first")]
 	public async Task<IActionResult> GetFormDataById(Guid id)
 	{
-		var formData = await _databaseContext.FormData.FirstOrDefaultAsync();
+		var formData = await _databaseContext.Forms.FirstOrDefaultAsync();
 
 		if (formData == null)
 		{
@@ -55,42 +55,41 @@ public class FormController : ControllerBase
 	public async Task<IActionResult> DeleteFormData(Guid id)
 	{
 		
-		var formData = await _databaseContext.FormData.FindAsync(id);
+		var formData = await _databaseContext.Forms.FindAsync(id);
 
 		if (formData == null)
 		{
 			return NotFound();
 		}
 
-		_databaseContext.FormData.Remove(formData);
+		_databaseContext.Forms.Remove(formData);
 		await _databaseContext.SaveChangesAsync();
 
 		return NoContent();
 	}
 
 	[HttpPut("updateForm/{id}")]
-	public async Task<IActionResult> UpdateFormData(Guid id, FormData updatedFormData)
+	public async Task<IActionResult> UpdateFormData(Guid id, Form updatedFormData)
 	{
-		if (updatedFormData.Text != null && updatedFormData.Name != null && 
-		    (!IsValidName(updatedFormData.Name) || !IsValidText(updatedFormData.Text)))
+		if (!ModelState.IsValid)
 		{
 			return BadRequest("Invalid form data.");
 		}
 		
-		if (id != updatedFormData.Id)
+		if (id != updatedFormData.FormId)
 		{
 			return BadRequest();
 		}
 
-		var existingFormData = await _databaseContext.FormData.FindAsync(id);
+		var existingFormData = await _databaseContext.Forms.FindAsync(id);
 
 		if (existingFormData == null)
 		{
 			return NotFound();
 		}
 
-		existingFormData.Name = updatedFormData.Name;
-		existingFormData.Text = updatedFormData.Text;
+		existingFormData.Email = updatedFormData.Email;
+		existingFormData.Message = updatedFormData.Message;
 
 		_databaseContext.Entry(existingFormData).State = EntityState.Modified;
 
