@@ -70,3 +70,24 @@ h1 {
 header, footer {
     flex-shrink: 0;
 }
+
+.login-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    padding-top: 10vh;
+}
+
+.login-form {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    max-width: 320px; 
+    margin: 0 auto; 
+}
+
+
