@@ -1,0 +1,47 @@
+@page "/login"
+
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.WebUtilities
+
+<div class="content">
+    <div class="login-form-container">
+        <h3>Prihlásenie</h3>
+        <form class="login-form" @onsubmit="ProcessLogin">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" @bind="email"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Heslo</label>
+                <input type="password" class="form-control" id="password" @bind="password"/>
+            </div>
+            <button type="submit" class="btn btn-outline-secondary my-2">Prihlásiť</button>
+        </form>
+    </div>
+</div>
+
+
+@code {
+    private string email;
+    private string password;
+    private string returnUrl = "/";
+    
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
+        {
+            this.returnUrl = returnUrl;
+        }
+        else
+        {
+            this.returnUrl = "/";
+        }
+    }
+
+    private void ProcessLogin()
+    {
+        NavigationManager.NavigateTo(returnUrl);
+    }
+
+}

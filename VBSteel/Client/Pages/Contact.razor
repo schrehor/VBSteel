@@ -1,14 +1,16 @@
 ﻿@page "/contact"
-@inject HttpClient httpClient
+@inject HttpClient HttpClient
 @using VBSteel.Shared
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="container pic-back content">
 	<div class="row">
 		<div class="col-md-6 py-5">
-			<EditForm Model="@contactForm" OnValidSubmit="HandleSubmit">
+			<EditForm Model="@contactForm" OnValidSubmit="@HandleSubmit">
+				<DataAnnotationsValidator/>
 				<div class="mb-3">
-					<label for="nameInput" class="form-label">Email:</label>
-					<input type="text" class="form-control" id="nameInput" @bind="contactForm.Email"/>
+					<label for="emailInput" class="form-label">Email:</label>
+					<input type="email" class="form-control" id="emailInput" @bind="contactForm.Email"/>
 					<ValidationMessage For="@(() => contactForm.Email)"/>
 				</div>
 				<div class="mb-3">
@@ -16,7 +18,6 @@
 					<textarea class="form-control" id="textInput" @bind="contactForm.Message"></textarea>
 					<ValidationMessage For="@(() => contactForm.Message)"/>
 				</div>
-
 				<button type="submit" class="btn btn-primary">Odoslať</button>
 			</EditForm>
 		</div>
@@ -41,32 +42,11 @@
 
 @code {
 	//todo:Prerobit podla novej DB architektury
-	private Form contactForm = new Form();
+	private Form contactForm = new();
 
-	// private bool IsValidName()
-	// {
-	// 	if (string.IsNullOrWhiteSpace(Name))
-	// 	{
-	// 		return false;
-	// 	}
-	//
-	// 	var words = Name.Trim().Split(' ');
-	// 	return words.Length is >= 1 and <= 2 && words.All(IsAlphaCharacters);
-	// }
-
-	private bool IsAlphaCharacters(string value)
+	private async Task HandleSubmit(EditContext editContext)
 	{
-		return !string.IsNullOrEmpty(value) && value.All(char.IsLetter);
-	}
-
-	// private bool IsValidText()
-	// {
-	// 	return !string.IsNullOrWhiteSpace(Text);
-	// }
-
-	private async Task HandleSubmit()
-	{
-		HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", contactForm);
+		var response = await HttpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", contactForm);
 
 		if (response.IsSuccessStatusCode)
 		{

@@ -1,14 +1,14 @@
 @page "/register"
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
-@inject IJSRuntime jsRuntime
+@inject IJSRuntime JsRuntime
 @using VBSteel.Shared
 
 <div class="content">
     @if (isRegistrationSuccessful)
     {
         <div class="alert alert-success" role="alert">
-            User successfully registered.
+            Registrácia prebehla úspešne.
         </div>
     }
     @if (emailExists)
@@ -66,10 +66,10 @@
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                await jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-
+                await JsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
                 
                 isRegistrationSuccessful = true;
+                StateHasChanged();
                 
                 await Task.Delay(2000); // 2 seconds delay
                 NavigationManager.NavigateTo(returnUrl);
