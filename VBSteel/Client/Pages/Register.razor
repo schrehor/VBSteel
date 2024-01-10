@@ -54,7 +54,7 @@
 
     private async Task ProcessRegister()
     {
-        emailExists = await HttpClient.GetFromJsonAsync<bool>($"api/Registration/check-email?email={registrationModel.Email}");
+        emailExists = await HttpClient.GetFromJsonAsync<bool>($"https://localhost:7280/api/Registration/check-email?email={registrationModel.Email}");
 
         if (emailExists)
         {
@@ -62,7 +62,7 @@
         }
         else
         {
-            var response = await HttpClient.PostAsJsonAsync("api/Registration/register", registrationModel);
+            var response = await HttpClient.PostAsJsonAsync("https://localhost:7280/api/Registration/register", registrationModel);
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
