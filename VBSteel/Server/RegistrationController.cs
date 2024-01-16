@@ -27,7 +27,7 @@ public class RegistrationController : Controller
     }
     
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser([FromBody] RegistrationViewModel registrationModel)
+    public async Task<IActionResult> RegisterUser([FromBody] RegistrationModel registrationModel)
     {
         if (ModelState.IsValid)
         {

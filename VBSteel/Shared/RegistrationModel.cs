@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VBSteel.Shared;
 
-public class RegistrationViewModel
+public class RegistrationModel
 {
     [Required(ErrorMessage = "Emailová adresa je povinná")]
     [EmailAddress(ErrorMessage = "Neplatná emailová adresa")]
