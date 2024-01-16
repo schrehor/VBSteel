@@ -23,7 +23,12 @@
         }
         else
         {
-            <p>Táto funkcionalita ešte nie je k dispocícii.</p>
+            @foreach (var message in messages)
+            {
+                <div>
+                    <p>@message.Message</p> <!-- Docasne riesenie na overenie funkcnosti -->
+                </div>
+            }
         }
     }
 </div>
