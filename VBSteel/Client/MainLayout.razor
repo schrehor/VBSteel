@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject AuthenticationProvider AuthenticationProvider; 
+
 
 <main>
 	<div class="site-container">
@@ -16,18 +19,26 @@
 				<div class="collapse navbar-collapse" id="navbarNav">
 					<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/">Products</NavLink>
+							<NavLink class="nav-link" href="/">Produkty</NavLink>
 						</li>
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/about">About Us</NavLink>
+							<NavLink class="nav-link" href="/about">O Nás</NavLink>
 						</li>
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/contact">Contact</NavLink>
+							<NavLink class="nav-link" href="/contact">Kontakt</NavLink>
 						</li>
 					</ul>
 					<div class="d-flex">
-						<button class="btn btn-outline-success ms-auto" @onclick="NavigateToLogin">Login</button>
-						<NavLink class="btn btn-outline-primary ms-2" href="/register">Register</NavLink>
+						@if (isUserLoggedIn)
+						{
+							<NavLink class="btn btn-outline-primary ms-auto" href="/account">Účet</NavLink>
+							<button class="btn btn-outline-success ms-2" @onclick="LogOut">Odhlasiť sa</button>
+						}
+						else
+						{
+							<button class="btn btn-outline-success ms-auto" @onclick="NavigateToLogin">Prihlásiť sa</button>
+                            <NavLink class="btn btn-outline-primary ms-2" href="/register">Registrovať sa</NavLink>
+						}
 					</div>
 				</div>
 			</div>
@@ -41,12 +52,28 @@
 
 
 @code {
-	[Inject]
-	public NavigationManager NavigationManager { get; set; }
+	private bool isUserLoggedIn;
 
+	protected override async Task OnParametersSetAsync()
+	{
+		var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		isUserLoggedIn = user.Identity.IsAuthenticated;
+	}
+	
 	private void NavigateToLogin()
 	{
 		var returnUrl = NavigationManager.Uri;
 		NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
 	}
+
+	private async Task LogOut()
+	{
+		//todo:token expiration
+		await AuthenticationProvider.MarkUserAsLoggedOut();
+
+		isUserLoggedIn = false;
+		NavigationManager.NavigateTo("/");
+	}
+
 }

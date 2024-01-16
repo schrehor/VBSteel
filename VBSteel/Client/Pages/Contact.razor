@@ -4,6 +4,12 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 <div class="container pic-back content">
+	@if (!string.IsNullOrEmpty(submissionMessage))
+    {
+        <div class="alert @submissionMessageClass">
+            @submissionMessage
+        </div>
+    }
 	<div class="row">
 		<div class="col-md-6 py-5">
 			<EditForm Model="@contactForm" OnValidSubmit="@HandleSubmit">
@@ -11,12 +17,12 @@
 				<div class="mb-3">
 					<label for="emailInput" class="form-label">Email:</label>
 					<input type="email" class="form-control" id="emailInput" @bind="contactForm.Email"/>
-					<ValidationMessage For="@(() => contactForm.Email)"/>
+					<ValidationMessage For="@(() => contactForm.Email)" class="validation-message"/>
 				</div>
 				<div class="mb-3">
 					<label for="textInput" class="form-label">Správa:</label>
 					<textarea class="form-control" id="textInput" @bind="contactForm.Message"></textarea>
-					<ValidationMessage For="@(() => contactForm.Message)"/>
+					<ValidationMessage For="@(() => contactForm.Message)" class="validation-message"/>
 				</div>
 				<button type="submit" class="btn btn-primary">Odoslať</button>
 			</EditForm>
@@ -42,20 +48,23 @@
 
 @code {
 	//todo:Prerobit podla novej DB architektury
-	private Form contactForm = new();
+	private FormModel contactForm = new();
+	private string submissionMessage;
+	private string submissionMessageClass;
 
 	private async Task HandleSubmit(EditContext editContext)
 	{
-		var response = await HttpClient.PostAsJsonAsync("https://localhost:7280/api/Form/submitForm", contactForm);
-
+		var response = await HttpClient.PostAsJsonAsync("api/Form/submitForm", contactForm);
+		
 		if (response.IsSuccessStatusCode)
 		{
-			var result = await response.Content.ReadAsStringAsync();
-			Console.WriteLine("Form submitted successfully: " + result);
+			submissionMessage = "Správa bola úspešne odoslaná!";
+			submissionMessageClass = "alert-success";
 		}
 		else
 		{
-			Console.WriteLine("Failed to submit form.");
+			submissionMessage = "Nepodarilo sa odoslať správu, prosím skúste to znova.";
+			submissionMessageClass = "alert-danger";
 		}
 	}
 }

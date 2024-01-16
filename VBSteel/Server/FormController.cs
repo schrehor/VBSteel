@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VBSteel.Shared;
 
@@ -16,15 +18,21 @@ public class FormController : ControllerBase
 	}
 	
 	[HttpPost("submitForm")]
-	public async Task<IActionResult> SubmitForm(Form formData)
+	public async Task<IActionResult> SubmitForm(FormModel formData)
 	{
 		if (!ModelState.IsValid)
 		{
 			return BadRequest("Invalid form data.");
 		}
 
-		formData.FormId = Guid.NewGuid();
-		_databaseContext.Forms.Add(formData);
+		Form newForm = new Form()
+		{
+			Email = formData.Email,
+			Message = formData.Message,
+			FormId = Guid.NewGuid()
+		};
+		
+		_databaseContext.Forms.Add(newForm);
 		try
 		{
 			await _databaseContext.SaveChangesAsync();
@@ -97,25 +105,27 @@ public class FormController : ControllerBase
 
 		return NoContent();
 	}
-
-	private bool IsValidName(string name)
+	
+	[HttpGet("getUserMessages")]
+	public ActionResult<IEnumerable<Form>> GetUserMessages()
 	{
-		if (string.IsNullOrWhiteSpace(name))
+		var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
 		{
-			return false;
+			return Unauthorized("Invalid user ID.");
 		}
 
-		var words = name.Trim().Split(' ');
-		return words.Length is >= 1 and <= 2 && words.All(IsAlphaCharacters);
+		var userMessages = _databaseContext.Forms.Where(m => m.UserId == userId).ToList();
+		return Ok(userMessages);
 	}
 
-	private bool IsAlphaCharacters(string value)
+	
+	[HttpGet("getAllMessages")]
+	[Authorize(Roles = "Admin")]
+	public ActionResult<IEnumerable<Form>> GetAllMessages()
 	{
-		return !string.IsNullOrEmpty(value) && value.All(char.IsLetter);
-	}
-
-	private bool IsValidText(string text)
-	{
-		return !string.IsNullOrWhiteSpace(text);
+	
+		var allMessages = _databaseContext.Forms.ToList();
+		return Ok(allMessages);
 	}
 }

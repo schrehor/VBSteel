@@ -1,8 +1,9 @@
 @page "/register"
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JsRuntime
+@inject AuthenticationProvider AuthenticationProvider; 
 @using VBSteel.Shared
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="content">
     @if (isRegistrationSuccessful)
@@ -19,29 +20,35 @@
     }
     <div class="login-form-container">
         <h3>Registrácia</h3>
-        <form class="login-form" @onsubmit="ProcessRegister">
+        <EditForm class="login-form" Model="@registrationModel" OnValidSubmit="@ProcessRegister">
+           <DataAnnotationsValidator />
             <div class="form-group">
                 <label for="name">Meno</label>
                 <input type="text" class="form-control" id="name" @bind="registrationModel.Name"/>
+                <ValidationMessage For="@(() => registrationModel.Name)" class="validation-message"/>
             </div>
             <div class="form-group">
                 <label for="surname">Priezvisko</label>
                 <input type="text" class="form-control" id="surname" @bind="registrationModel.Surname"/>
+                <ValidationMessage For="@(() => registrationModel.Surname)" class="validation-message"/>
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" class="form-control" id="email" @bind="registrationModel.Email"/>
+                <ValidationMessage For="@(() => registrationModel.Email)" class="validation-message"/>
             </div>
             <div class="form-group">
                 <label for="password">Heslo</label>
                 <input type="password" class="form-control" id="password" @bind="registrationModel.Password"/>
+                <ValidationMessage For="@(() => registrationModel.Password)" class="validation-message"/>
             </div>
             <div class="form-group">
                 <label for="confirmPassword">Potvrdiť heslo</label>
                 <input type="password" class="form-control" id="confirmPassword" @bind="registrationModel.ConfirmPassword"/>
+                <ValidationMessage For="@(() => registrationModel.ConfirmPassword)" class="validation-message"/>
             </div>
             <button type="submit" class="btn btn-outline-secondary my-2">Registrovať</button>
-        </form>
+        </EditForm>
     </div>
 </div>
 
@@ -52,9 +59,9 @@
     private bool isRegistrationSuccessful;
     private string returnUrl = "/"; 
 
-    private async Task ProcessRegister()
+    private async Task ProcessRegister(EditContext editContext)
     {
-        emailExists = await HttpClient.GetFromJsonAsync<bool>($"https://localhost:7280/api/Registration/check-email?email={registrationModel.Email}");
+        emailExists = await HttpClient.GetFromJsonAsync<bool>($"api/Registration/check-email?email={registrationModel.Email}");
 
         if (emailExists)
         {
@@ -62,16 +69,16 @@
         }
         else
         {
-            var response = await HttpClient.PostAsJsonAsync("https://localhost:7280/api/Registration/register", registrationModel);
+            var response = await HttpClient.PostAsJsonAsync("api/Registration/register", registrationModel);
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                await JsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+                await AuthenticationProvider.MarkUserAsAuthenticated(token);
                 
                 isRegistrationSuccessful = true;
                 StateHasChanged();
                 
-                await Task.Delay(2000); // 2 seconds delay
+                await Task.Delay(2000); // 2 sekundovy delay
                 NavigationManager.NavigateTo(returnUrl);
             }
         }

@@ -38,25 +38,13 @@ public class RegistrationController : Controller
                 Name = registrationModel.Name,
                 Surname = registrationModel.Surname,
                 PasswordHash = HashPassword(registrationModel.Password),
-                Role = UserRole.RegularUser
+                Role = registrationModel.Email.Contains("vbsteel") ? UserRole.Admin : UserRole.RegularUser
             };
 
             _databaseContext.Users.Add(newUser);
             await _databaseContext.SaveChangesAsync();
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = "NajtajnejsiKlucKtoryNiktoNikdyNeuhadne"u8.ToArray();
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, newUser.UserId.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
+            var tokenString = TokenGenerator.GenerateToken(newUser);
             
             // todo: pouzit CreatedAtAction?
             return Ok(new { Token = tokenString });

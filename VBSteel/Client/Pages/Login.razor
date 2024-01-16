@@ -1,30 +1,36 @@
 @page "/login"
-
-@inject NavigationManager NavigationManager
+@using VBSteel.Shared
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject AuthenticationProvider AuthenticationProvider;
 
 <div class="content">
     <div class="login-form-container">
         <h3>Prihlásenie</h3>
-        <form class="login-form" @onsubmit="ProcessLogin">
+        <EditForm class="login-form" Model="@loginModel" OnValidSubmit="@ProcessLogin">
+            <DataAnnotationsValidator/>
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" @bind="email"/>
+                <input type="email" class="form-control" id="email" @bind="loginModel.Email"/>
+                <ValidationMessage For="@(() => loginModel.Email)" class="validation-message"/>
             </div>
             <div class="form-group">
                 <label for="password">Heslo</label>
-                <input type="password" class="form-control" id="password" @bind="password"/>
+                <input type="password" class="form-control" id="password" @bind="loginModel.Password"/>
+                <ValidationMessage For="@(() => loginModel.Password)" class="validation-message"/>
             </div>
             <button type="submit" class="btn btn-outline-secondary my-2">Prihlásiť</button>
-        </form>
+        </EditForm>
     </div>
 </div>
 
 
 @code {
-    private string email;
-    private string password;
+    private LoginViewModel loginModel = new();
     private string returnUrl = "/";
+    private string errorMessage;
     
     protected override void OnInitialized()
     {
@@ -39,9 +45,21 @@
         }
     }
 
-    private void ProcessLogin()
+    private async Task ProcessLogin(EditContext editContext)
     {
-        NavigationManager.NavigateTo(returnUrl);
+        var response = await HttpClient.PostAsJsonAsync("api/login/login", loginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+            await AuthenticationProvider.MarkUserAsAuthenticated(token);
+
+            NavigationManager.NavigateTo(returnUrl);
+        }
+        else
+        {
+            // Handle errors, for example, show an error message
+            errorMessage = "Login failed. Please check your credentials.";
+        }
     }
 
 }
