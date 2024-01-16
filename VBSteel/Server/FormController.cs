@@ -115,7 +115,7 @@ public class FormController(DatabaseContext databaseContext) : ControllerBase
 	}
 	
 	[HttpGet("getUserMessages")]
-	public ActionResult<IEnumerable<Form>> GetUserMessages()
+	public async Task<ActionResult<IEnumerable<Form>>> GetUserMessages()
 	{
 		var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
@@ -123,17 +123,16 @@ public class FormController(DatabaseContext databaseContext) : ControllerBase
 			return Unauthorized("Invalid user ID.");
 		}
 
-		var userMessages = databaseContext.Forms.Where(m => m.UserId == userId).ToList();
+		var userMessages = await databaseContext.Forms.Where(m => m.UserId == userId).ToListAsync();
 		return Ok(userMessages);
 	}
 
 	
 	[HttpGet("getAllMessages")]
 	[Authorize(Roles = "Admin")]
-	public ActionResult<IEnumerable<Form>> GetAllMessages()
+	public async Task<ActionResult<IEnumerable<Form>>> GetAllMessages()
 	{
-	
-		var allMessages = databaseContext.Forms.ToList();
+		var allMessages = await databaseContext.Forms.ToListAsync();
 		return Ok(allMessages);
 	}
 }
