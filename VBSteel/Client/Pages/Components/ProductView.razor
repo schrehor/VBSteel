@@ -1,0 +1,12 @@
+@using VBSteel.Shared
+
+<div class="col-12 col-md-4 text-center">
+    <img class="mx-auto img-fluid" src="@Product.ImagePath" alt="@Product.Name">
+    <div>@Product.Name</div>
+    <a href="#" class="btn btn-outline-secondary my-2">Zistiť viac</a>
+</div>
+
+@code {
+    [Parameter]
+    public ProductViewModel Product { get; set; }
+}
