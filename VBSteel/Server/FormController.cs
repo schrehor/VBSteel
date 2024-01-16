@@ -5,18 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using VBSteel.Shared;
 
 namespace VBSteel.Server;
-//Todo: Prerobit podla novej DB architektury
+
 [ApiController]
 [Route("api/[controller]")]
-public class FormController : ControllerBase
+public class FormController(DatabaseContext databaseContext) : ControllerBase
 {
-	private readonly DatabaseContext _databaseContext;
-
-	public FormController(DatabaseContext databaseContext)
-	{
-		_databaseContext = databaseContext;
-	}
-	
 	[HttpPost("submitForm")]
 	public async Task<IActionResult> SubmitForm(FormModel formData)
 	{
@@ -25,17 +18,32 @@ public class FormController : ControllerBase
 			return BadRequest("Invalid form data.");
 		}
 
-		Form newForm = new Form()
+		Form newForm;
+		var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
 		{
-			Email = formData.Email,
-			Message = formData.Message,
-			FormId = Guid.NewGuid()
-		};
+			newForm = new Form()
+			{
+				Email = formData.Email,
+				Message = formData.Message,
+				FormId = Guid.NewGuid()
+			};
+		}
+		else
+		{
+			newForm = new Form()
+			{
+				Email = formData.Email,
+				Message = formData.Message,
+				FormId = Guid.NewGuid(),
+				UserId = userId
+			};
+		}
 		
-		_databaseContext.Forms.Add(newForm);
+		databaseContext.Forms.Add(newForm);
 		try
 		{
-			await _databaseContext.SaveChangesAsync();
+			await databaseContext.SaveChangesAsync();
 		}
 		catch (Exception e)
 		{
@@ -49,7 +57,7 @@ public class FormController : ControllerBase
 	[HttpGet("first")]
 	public async Task<IActionResult> GetFormDataById(Guid id)
 	{
-		var formData = await _databaseContext.Forms.FirstOrDefaultAsync();
+		var formData = await databaseContext.Forms.FirstOrDefaultAsync();
 
 		if (formData == null)
 		{
@@ -63,15 +71,15 @@ public class FormController : ControllerBase
 	public async Task<IActionResult> DeleteFormData(Guid id)
 	{
 		
-		var formData = await _databaseContext.Forms.FindAsync(id);
+		var formData = await databaseContext.Forms.FindAsync(id);
 
 		if (formData == null)
 		{
 			return NotFound();
 		}
 
-		_databaseContext.Forms.Remove(formData);
-		await _databaseContext.SaveChangesAsync();
+		databaseContext.Forms.Remove(formData);
+		await databaseContext.SaveChangesAsync();
 
 		return NoContent();
 	}
@@ -89,7 +97,7 @@ public class FormController : ControllerBase
 			return BadRequest();
 		}
 
-		var existingFormData = await _databaseContext.Forms.FindAsync(id);
+		var existingFormData = await databaseContext.Forms.FindAsync(id);
 
 		if (existingFormData == null)
 		{
@@ -99,9 +107,9 @@ public class FormController : ControllerBase
 		existingFormData.Email = updatedFormData.Email;
 		existingFormData.Message = updatedFormData.Message;
 
-		_databaseContext.Entry(existingFormData).State = EntityState.Modified;
+		databaseContext.Entry(existingFormData).State = EntityState.Modified;
 
-		await _databaseContext.SaveChangesAsync();
+		await databaseContext.SaveChangesAsync();
 
 		return NoContent();
 	}
@@ -115,7 +123,7 @@ public class FormController : ControllerBase
 			return Unauthorized("Invalid user ID.");
 		}
 
-		var userMessages = _databaseContext.Forms.Where(m => m.UserId == userId).ToList();
+		var userMessages = databaseContext.Forms.Where(m => m.UserId == userId).ToList();
 		return Ok(userMessages);
 	}
 
@@ -125,7 +133,7 @@ public class FormController : ControllerBase
 	public ActionResult<IEnumerable<Form>> GetAllMessages()
 	{
 	
-		var allMessages = _databaseContext.Forms.ToList();
+		var allMessages = databaseContext.Forms.ToList();
 		return Ok(allMessages);
 	}
 }
