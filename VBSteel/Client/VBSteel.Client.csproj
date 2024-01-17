@@ -22,4 +22,8 @@
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AdditionalFiles Include="Layouts\MainLayout.razor" />
+  </ItemGroup>
+
 </Project>
