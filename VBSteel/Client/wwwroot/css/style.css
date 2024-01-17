@@ -63,7 +63,7 @@ h1 {
     min-height: 100vh;
 }
 
-.content {
+.stretch-content-fullscreen {
     flex: 1;
 }
 
