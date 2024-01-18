@@ -74,16 +74,21 @@
 		{
 			//todo
 		}
-		
-		_productViews = System.Text.Json.JsonSerializer.Deserialize<List<ProductViewModel>>(productViewsJson);
-		if (_productViews == null)
+
+		try
+		{
+			_productViews = System.Text.Json.JsonSerializer.Deserialize<List<ProductViewModel>>(productViewsJson);
+		}
+		catch (Exception)
 		{
 			//todo
+			return;
 		}
-		else
-		{
-			_groupedProductViews = GroupProductViews(_productViews, 3);
-		}
+
+		if (_productViews == null)
+			return; //todo
+		_groupedProductViews = GroupProductViews(_productViews, 3);
+		
 	}
 	
 	private List<List<ProductViewModel>> GroupProductViews(List<ProductViewModel> views, int groupSize)
