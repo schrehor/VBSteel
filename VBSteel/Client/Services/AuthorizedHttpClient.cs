@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace VBSteel.Client;
+namespace VBSteel.Client.Services;
 
 public class AuthorizedHttpClient(HttpClient httpClient, AuthenticationProvider authenticationProvider)
 {
@@ -13,7 +13,7 @@ public class AuthorizedHttpClient(HttpClient httpClient, AuthenticationProvider 
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
-
+        
         return await httpClient.GetAsync(requestUri);
     }
 

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
-namespace VBSteel.Client;
+namespace VBSteel.Client.Services;
 
 public class AuthenticationProvider(IJSRuntime jsRuntime) : AuthenticationStateProvider
 {
