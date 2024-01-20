@@ -51,6 +51,7 @@
 
 @code {
 	//TODO: uprava vizualu
+	//TODO: ked sa zmeni alert nech sa vytvori novy komponent s novou spravou namiesto prepisu
 	
 	private bool _isLoggedIn;
 	private readonly FormModel _contactForm = new();
@@ -66,17 +67,17 @@
 		if (user.Identity is {IsAuthenticated: true})
 		{
 			_isLoggedIn = true;
-			await SetLoggedUserEmail();
+			_ = SetLoggedUserEmail();
 		}
 	}
 
 	private async Task SetLoggedUserEmail()
 	{
-		var responseMessage = await AuthorizedHttpClient.GetAsync("api/user/getUserEmail");
+		var responseMessage = await AuthorizedHttpClient.GetAsync("api/User/getUserEmail");
 		if (responseMessage.IsSuccessStatusCode)
 		{
 			_contactForm.Email = await responseMessage.Content.ReadAsStringAsync();
-			await SetAlertContent("alert-info", "Z účtu sme automaticky doplnili Vás email.", 5);
+			_ = SetAlertContent("alert-info", "Z účtu sme automaticky doplnili Váš email.", 5);
 		}
 	}
 	
@@ -92,28 +93,32 @@
 
 		if (response.IsSuccessStatusCode)
 		{
-			await SetAlertContent("alert-success", "Správa bola úspešne odoslaná!", 5);
-			
+			_ = SetAlertContent("alert-success", "Správa bola úspešne odoslaná!", 5);
 			_autofilledEmail = _contactForm.Email;
 			_contactForm.Email = string.Empty;
 			_contactForm.Message = string.Empty;
 		}
 		else
 		{
-			await SetAlertContent("alert-danger", "Nepodarilo sa odoslať správu, prosím skúste to znova.");
+			_ = SetAlertContent("alert-danger", "Nepodarilo sa odoslať správu, prosím skúste to znova.");
 		}
 	}
 
 	private void AutoFillEmail()
 	{
 		if (_isLoggedIn && !string.IsNullOrEmpty(_autofilledEmail))
+		{
 			_contactForm.Email = _autofilledEmail;
+			_ = SetAlertContent("alert-info", "Z prechádzajúcej správy sme Vám automaticky doplnili Váš email.", 5);
+			_autofilledEmail = string.Empty;
+		}
 	}
 
 	private async Task SetAlertContent(string type, string content, int timeActive = 0)
 	{
 		_alertTypeClass = type;
 		_alertMessage = content;
+		StateHasChanged();
 
 		if (timeActive != 0)
 		{
@@ -121,5 +126,6 @@
 			_alertTypeClass = string.Empty;
 			_alertMessage = string.Empty;
 		}
+		StateHasChanged();
 	}
 }
