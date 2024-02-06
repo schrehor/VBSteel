@@ -12,9 +12,11 @@ public class AuthenticationProvider : AuthenticationStateProvider
     private ClaimsPrincipal? _user;
 	private readonly IJSRuntime _jsRuntime;
 
+    public event Action? OnTokenChanged;
+
     public AuthenticationProvider(IJSRuntime jsRuntime)
     {
-	    this._jsRuntime = jsRuntime;
+	    _jsRuntime = jsRuntime;
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -59,12 +61,14 @@ public class AuthenticationProvider : AuthenticationStateProvider
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthTokenKey, authToken);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        OnTokenChanged?.Invoke();
     }
     
     public async Task MarkUserAsLoggedOut()
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthTokenKey);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        OnTokenChanged?.Invoke();
     }
 
     private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -10,33 +11,66 @@ public class AuthorizedHttpClient
 
     public AuthorizedHttpClient(HttpClient httpClient, AuthenticationProvider authenticationProvider)
     {
-		this._httpClient = httpClient;
-		this._authenticationProvider = authenticationProvider;
-	}
+		_httpClient = httpClient;
+		_authenticationProvider = authenticationProvider;
 
-    public async Task<HttpResponseMessage> GetAsync(string requestUri)
+        SetAuthorizationHeaderAsync();
+        _authenticationProvider.OnTokenChanged += SetAuthorizationHeaderAsync;
+    }
+
+    private async void SetAuthorizationHeaderAsync()
     {
         var token = await _authenticationProvider.GetJwtTokenAsync();
 
-        if (!string.IsNullOrEmpty(token))
+        _httpClient.DefaultRequestHeaders.Authorization = !string.IsNullOrEmpty(token) ?
+            new AuthenticationHeaderValue("Bearer", token) : null;
+    }
+
+    public async Task<HttpResponseMessage> GetAsync(string requestUri)
+    {
+        if (_httpClient.DefaultRequestHeaders.Authorization is null)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return CreateUnauthorizedResponse();
         }
-        
+
         return await _httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> PostAsJsonAsync(string requestUri, object content)
     {
-        var token = await _authenticationProvider.GetJwtTokenAsync();
-
-        if (!string.IsNullOrEmpty(token))
+        if (_httpClient.DefaultRequestHeaders.Authorization is null)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return CreateUnauthorizedResponse();
         }
 
         return await _httpClient.PostAsJsonAsync(requestUri, content);
     }
 
-    // Todo: PutAsync, DeleteAsync
+    public async Task<HttpResponseMessage> DeleteAsync(string requestUri)
+    {
+        if (_httpClient.DefaultRequestHeaders.Authorization is null)
+        {
+            return CreateUnauthorizedResponse();
+        }
+
+        return await _httpClient.DeleteAsync(requestUri);
+    }
+
+    public async Task<HttpResponseMessage> PutAsJsonAsync(string requestUri, object content)
+    {
+        if (_httpClient.DefaultRequestHeaders.Authorization is null)
+        {
+            return CreateUnauthorizedResponse();
+        }
+
+        return await _httpClient.PutAsJsonAsync(requestUri, content);
+    }
+
+    private HttpResponseMessage CreateUnauthorizedResponse()
+    {
+        return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent("User is not authenticated.")
+        };
+    }
 }
