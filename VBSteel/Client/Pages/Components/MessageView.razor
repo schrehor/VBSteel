@@ -1,0 +1,166 @@
+﻿@inject AuthorizedHttpClient AuthorizedHttpClient
+@using VBSteel.Shared
+
+<div class="stretch-content-fullscreen">
+    <h3>Messages</h3>
+    @if (_internalError)
+    {
+        <p>An error occurred while loading the messages.</p>
+    }
+    else if (_messages == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (_messages.Count == 0)
+    {
+        <p>No messages to display.</p>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Number</th>
+                    <th>Email</th>
+                    <th>Message</th>
+                    <th>Sender</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < _messages.Count; i++)
+                {
+                    var message = _messages[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>
+                            @if (message == _editingMessage)
+                            {
+                                <input @bind="_editingFormModel.Email" />
+                            }
+                            else
+                            {
+                                @message.Email
+                            }
+                        </td>
+                        <td>
+                            @if (message == _editingMessage)
+                            {
+                                <input @bind="_editingFormModel.Message" />
+                            }
+                            else
+                            {
+                                @message.Message
+                            }
+                        </td>
+                        <td>@if (message.User != null)
+                            {
+                                @(@message.User.Name + " " + @message.User.Surname)
+                            }</td>
+                        <td>
+                            @if (message == _editingMessage)
+                            {
+                                <button class="btn btn-success" @onclick="() => SaveChanges(message)">Save</button>
+                                <button class="btn btn-secondary" @onclick="CancelEditing">Cancel</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary" @onclick="() => StartEditingMessage(message)">Edit</button>
+                                <button class="btn btn-danger" @onclick="() => DeleteMessage(message)">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public UserRole UserRole { get; set; }
+    private Form? _editingMessage;
+    private FormModel _editingFormModel = new();
+    private List<Form>? _messages;
+    private bool _internalError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMessages(UserRole);
+    }
+
+    private async Task LoadMessages(UserRole role)
+    {
+        try
+        {
+            if (UserRole == UserRole.Admin)
+            {
+                await LoadMessagesForAdmin();
+            }
+            else
+            {
+                await LoadMessagesForUser();
+            }
+        }
+        catch
+        {
+            _internalError = true;
+        }
+    }
+
+    private async Task LoadMessagesForAdmin()
+    {
+        var responseMessages = await AuthorizedHttpClient.GetAsync("api/form/getAllMessages");
+        if (responseMessages.IsSuccessStatusCode)
+        {
+            _messages = await responseMessages.Content.ReadFromJsonAsync<List<Form>>();
+        }
+    }
+
+    private async Task LoadMessagesForUser()
+    {
+        var responseMessages = await AuthorizedHttpClient.GetAsync("api/form/getUserMessages");
+        if (responseMessages.IsSuccessStatusCode)
+        {
+            _messages = await responseMessages.Content.ReadFromJsonAsync<List<Form>>();
+        }
+    }
+
+    private void StartEditingMessage(Form message)
+    {
+        _editingMessage = message;
+        _editingFormModel.Email = message.Email;
+        _editingFormModel.Message = message.Message;
+    }
+
+    private async Task SaveChanges(Form message)
+    {
+        var response = await AuthorizedHttpClient.PutAsJsonAsync($"api/form/updateForm/{message.FormId}", _editingFormModel);
+        if (response.IsSuccessStatusCode)
+        {
+            // Refresh the messages list
+            await LoadMessages(UserRole);
+            ResetEditingVariables();
+        }
+    }
+
+    private void CancelEditing()
+    {
+	    ResetEditingVariables();
+    }
+
+    private void ResetEditingVariables()
+	{
+		_editingFormModel = new FormModel();
+	    _editingMessage = null;
+	}
+
+    private async Task DeleteMessage(Form message)
+    {
+        var response = await AuthorizedHttpClient.DeleteAsync($"api/form/{message.FormId}");
+        if (response.IsSuccessStatusCode)
+        {
+            // Refresh the messages list
+            await LoadMessages(UserRole);
+        }
+    }
+}

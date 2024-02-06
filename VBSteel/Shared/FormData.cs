@@ -17,5 +17,5 @@ public class Form
 	[StringLength(2000, ErrorMessage = "Maximálna dĺžka správy je 2000 znakov")]
 	public string Message { get; set; }
 
-	public User User { get; set; }
+	public User? User { get; set; }
 }

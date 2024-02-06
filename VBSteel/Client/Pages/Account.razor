@@ -2,84 +2,34 @@
 @inject AuthenticationProvider AuthenticationProvider
 @inject AuthorizedHttpClient AuthorizedHttpClient
 @using VBSteel.Shared
-@using System.Security.Claims
+@using VBSteel.Client.Pages.Components
 
 <div class="stretch-content-fullscreen">
-    <h3>Môj účet</h3>
-    @if (!isUserLoggedIn)
-    {
-        <p>Please log in to view this page.</p>
-    }
-    else
-    {
-        if (userRole == UserRole.Admin)
-        {
-            @foreach (var message in messages)
-            {
-                <div>
-                    <p>@message.Message</p> <!-- Docasne riesenie na overenie funkcnosti -->
-                </div>
-            }
-        }
-        else
-        {
-            @foreach (var message in messages)
-            {
-                <div>
-                    <p>@message.Message</p> <!-- Docasne riesenie na overenie funkcnosti -->
-                </div>
-            }
-        }
-    }
+	<h3>Môj účet</h3>
+	@if (!_isUserLoggedIn)
+	{
+		<p>Please log in to view this page.</p>
+	}
+	else
+	{
+		<MessageView UserRole="@_userRole" />
+	}
 </div>
+
 @code {
-    private bool isUserLoggedIn;
-    private UserRole userRole;
-    private List<Form> messages;
+    private bool _isUserLoggedIn;
+    private UserRole _userRole;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        isUserLoggedIn = user.Identity.IsAuthenticated;
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity != null)
+			_isUserLoggedIn = user.Identity.IsAuthenticated;
 
-        if (isUserLoggedIn)
-        {
-            userRole = DetermineUserRole(user);
-            if (userRole == UserRole.Admin)
-            {
-                await LoadMessagesForAdmin();
-            }
-            else
-            {
-                await LoadMessagesForUser();
-            }
-        }
-    }
-    
-    private UserRole DetermineUserRole(ClaimsPrincipal user)
-    {
-        var isAdmin = user.IsInRole("Admin");
-        return isAdmin ? UserRole.Admin : UserRole.RegularUser;
-    }
+		if (_isUserLoggedIn)
+			_userRole = AuthenticationProvider.DetermineUserRole();
 
-    private async Task LoadMessagesForAdmin()
-    {
-        var responseMessages = await AuthorizedHttpClient.GetAsync("api/form/getAllMessages");
-        if (responseMessages.IsSuccessStatusCode)
-        {
-            messages = await responseMessages.Content.ReadFromJsonAsync<List<Form>>();
-        }
-    }
-
-    private async Task LoadMessagesForUser()
-    {
-        var responseMessages = await AuthorizedHttpClient.GetAsync("api/form/getUserMessages");
-        if (responseMessages.IsSuccessStatusCode)
-        {
-            messages = await responseMessages.Content.ReadFromJsonAsync<List<Form>>();
-        }
-    }
-
+	}
 }
 
