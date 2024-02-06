@@ -2,16 +2,24 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using VBSteel.Shared;
 
 namespace VBSteel.Client.Services;
 
-public class AuthenticationProvider(IJSRuntime jsRuntime) : AuthenticationStateProvider
+public class AuthenticationProvider : AuthenticationStateProvider
 {
     private const string AuthTokenKey = "authToken";
+    private ClaimsPrincipal? _user;
+	private readonly IJSRuntime _jsRuntime;
+
+    public AuthenticationProvider(IJSRuntime jsRuntime)
+    {
+	    this._jsRuntime = jsRuntime;
+    }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var authToken = await jsRuntime.InvokeAsync<string>("localStorage.getItem", AuthTokenKey);
+        var authToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", AuthTokenKey);
 
         var identity = new ClaimsIdentity();
         if (!string.IsNullOrEmpty(authToken))
@@ -27,23 +35,35 @@ public class AuthenticationProvider(IJSRuntime jsRuntime) : AuthenticationStateP
             }
         }
 
-        return new AuthenticationState(new ClaimsPrincipal(identity));
+        _user = new ClaimsPrincipal(identity);
+		return new AuthenticationState(_user);
     }
 
     public async Task<string> GetJwtTokenAsync()
     {
-        return await jsRuntime.InvokeAsync<string>("localStorage.getItem", AuthTokenKey);
+        return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", AuthTokenKey);
     }
 
-    public async Task MarkUserAsAuthenticated(string authToken)
+    public UserRole DetermineUserRole()
     {
-        await jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthTokenKey, authToken);
+	    if (_user is null)
+	    {
+		    return UserRole.NotLoggedIn;
+	    }
+
+	    var isAdmin = _user.IsInRole("Admin");
+	    return isAdmin ? UserRole.Admin : UserRole.RegularUser;
+    }
+
+	public async Task MarkUserAsAuthenticated(string authToken)
+    {
+        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AuthTokenKey, authToken);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
     
     public async Task MarkUserAsLoggedOut()
     {
-        await jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthTokenKey);
+        await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AuthTokenKey);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
 

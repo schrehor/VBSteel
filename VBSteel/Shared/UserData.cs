@@ -26,5 +26,6 @@ public class User
 public enum UserRole
 {
     RegularUser,
-    Admin
+    Admin,
+    NotLoggedIn
 }
