@@ -1,5 +1,6 @@
 ﻿@inject AuthorizedHttpClient AuthorizedHttpClient
 @using VBSteel.Shared
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="stretch-content-fullscreen">
     <h3>Messages</h3>
@@ -28,49 +29,55 @@
                 </tr>
             </thead>
             <tbody>
-                @for (var i = 0; i < _messages.Count; i++)
-                {
-                    var message = _messages[i];
-                    <tr>
-                        <td>@(i + 1)</td>
-                        <td>
-                            @if (message == _editingMessage)
-                            {
-                                <input @bind="_editingFormModel.Email" />
-                            }
-                            else
-                            {
-                                @message.Email
-                            }
-                        </td>
-                        <td>
-                            @if (message == _editingMessage)
-                            {
-                                <input @bind="_editingFormModel.Message" />
-                            }
-                            else
-                            {
-                                @message.Message
-                            }
-                        </td>
-                        <td>@if (message.User != null)
-                            {
-                                @(@message.User.Name + " " + @message.User.Surname)
-                            }</td>
-                        <td>
-                            @if (message == _editingMessage)
-                            {
-                                <button class="btn btn-success" @onclick="() => SaveChanges(message)">Save</button>
-                                <button class="btn btn-secondary" @onclick="CancelEditing">Cancel</button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-primary" @onclick="() => StartEditingMessage(message)">Edit</button>
-                                <button class="btn btn-danger" @onclick="() => DeleteMessage(message)">Delete</button>
-                            }
-                        </td>
-                    </tr>
-                }
+            @for (var i = 0; i < _messages.Count; i++)
+            {
+	            var message = _messages[i];
+	            <tr>
+		            <td>@(i + 1)</td>
+		            @if (message == _editingMessage)
+		            {
+			            var editContext = _editContexts[message];
+			            <td>
+				            <EditForm EditContext="editContext">
+					            <DataAnnotationsValidator />
+					            <ValidationMessage For="@(() => _editingFormModel.Email)" />
+					            <InputText @bind-Value="_editingFormModel.Email" />
+				            </EditForm>
+			            </td>
+			            <td>
+				            <EditForm EditContext="editContext">
+					            <ValidationMessage For="@(() => _editingFormModel.Message)" />
+					            <InputTextArea @bind-Value="_editingFormModel.Message" style="width:100%; height:auto;" />
+				            </EditForm>
+			            </td>
+			            <td>
+				            @if (message.User != null)
+				            {
+					            @(@message.User.Name + " " + @message.User.Surname)
+				            }
+			            </td>
+			            <td>
+				            <button class="btn btn-success" @onclick="() => SaveChanges(message)">Save</button>
+				            <button class="btn btn-secondary" @onclick="() => CancelEditing(message)">Cancel</button>
+			            </td>
+		            }
+		            else
+		            {
+			            <td>@message.Email</td>
+			            <td>@message.Message</td>
+			            <td>
+				            @if (message.User != null)
+				            {
+					            @(@message.User.Name + " " + @message.User.Surname)
+				            }
+			            </td>
+			            <td>
+				            <button class="btn btn-primary" @onclick="() => StartEditingMessage(message)">Edit</button>
+				            <button class="btn btn-danger" @onclick="() => DeleteMessage(message)">Delete</button>
+			            </td>
+		            }
+	            </tr>
+            }
             </tbody>
         </table>
     }
@@ -82,6 +89,7 @@
     private FormModel _editingFormModel = new();
     private List<Form>? _messages;
     private bool _internalError;
+    private Dictionary<Form, EditContext> _editContexts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,29 +138,32 @@
         _editingMessage = message;
         _editingFormModel.Email = message.Email;
         _editingFormModel.Message = message.Message;
+        if (!_editContexts.ContainsKey(message))
+        {
+            _editContexts[message] = new EditContext(_editingFormModel);
+        }
     }
 
     private async Task SaveChanges(Form message)
     {
-        var response = await AuthorizedHttpClient.PutAsJsonAsync($"api/form/updateForm/{message.FormId}", _editingFormModel);
-        if (response.IsSuccessStatusCode)
+        var editContext = _editContexts[message];
+        if (editContext.Validate())
         {
-            // Refresh the messages list
-            await LoadMessages(UserRole);
-            ResetEditingVariables();
+            var response = await AuthorizedHttpClient.PutAsJsonAsync($"api/form/updateForm/{message.FormId}", _editingFormModel);
+            if (response.IsSuccessStatusCode)
+            {
+                // Refresh the messages list
+                await LoadMessages(UserRole);
+                CancelEditing(message);
+            }
         }
     }
 
-    private void CancelEditing()
+    private void CancelEditing(Form message)
     {
-	    ResetEditingVariables();
+        _editingMessage = null;
+        _editContexts.Remove(message);
     }
-
-    private void ResetEditingVariables()
-	{
-		_editingFormModel = new FormModel();
-	    _editingMessage = null;
-	}
 
     private async Task DeleteMessage(Form message)
     {
