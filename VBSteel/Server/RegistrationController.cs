@@ -47,7 +47,7 @@ public class RegistrationController : Controller
             var tokenString = TokenGenerator.GenerateToken(newUser);
             
             // todo: pouzit CreatedAtAction?
-            return Ok(new { Token = tokenString });
+            return Ok(tokenString);
         }
 
         return BadRequest(ModelState);
