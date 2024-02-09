@@ -2,6 +2,7 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @using VBSteel.Shared
+@using VBSteel.Client.Pages.Components
 
 <div class="gray-back">
     <div class="container">
@@ -38,7 +39,7 @@
 	@{
 		if (_groupedProductViews == null)
 		{
-			NavigationManager.NavigateTo("/404");
+			<div>cakaj</div>
 		}
 		else
 		{
@@ -66,27 +67,15 @@
 		var response = await HttpClient.GetAsync("api/Product/productView");
 		if (!response.IsSuccessStatusCode)
 		{
+			Console.WriteLine($"Error: {response.StatusCode}");
+			return;
 			//todo
 		}
 		
-		var productViewsJson = await response.Content.ReadAsStringAsync();
-		if (!string.IsNullOrEmpty(productViewsJson))
-		{
-			//todo
-		}
-
-		try
-		{
-			_productViews = System.Text.Json.JsonSerializer.Deserialize<List<ProductViewModel>>(productViewsJson);
-		}
-		catch (Exception)
-		{
-			//todo
-			return;
-		}
+		_productViews = await response.Content.ReadFromJsonAsync<List<ProductViewModel>>();
 
 		if (_productViews == null)
-			return; //todo
+			NavigationManager.NavigateTo("/404");
 		_groupedProductViews = GroupProductViews(_productViews, 3);
 		
 	}

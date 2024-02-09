@@ -24,6 +24,7 @@ public class ProductController : Controller
     }
 
     [HttpPost("CreateProduct")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateProduct(ProductInputModel inputModel)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -65,24 +66,50 @@ public class ProductController : Controller
     [HttpGet("productView")]
     public async Task<ActionResult<IEnumerable<ProductViewModel>>> GetProductView()
     {
-        var allProducts = await _databaseContext.Products.ToListAsync();
-        if (allProducts.Count > 0)
-        {
-            var listOfProductViews = allProducts.Select(p =>
-            {
-                var imageBytes = System.IO.File.ReadAllBytes(p.ImagePath);
-                var imageType = Path.GetExtension(p.ImagePath).Replace(".", "");
-                return new ProductViewModel()
-                {
-                    Name = p.Name,
-                    ImageData = Convert.ToBase64String(imageBytes),
-                    ImageType = imageType
-                };
-            }).ToList();
+	    var allProducts = await _databaseContext.Products.ToListAsync();
+	    if (allProducts.Count > 0)
+	    {
+		    var listOfProductViews = allProducts.Select(p =>
+		    {
+			    var imageType = Path.GetExtension(p.ImagePath).Replace(".", "");
+			    var imageData = System.IO.File.ReadAllBytes(p.ImagePath);
+			    return new ProductViewModel()
+			    {
+				    Name = p.Name,
+				    ImageData = imageData,
+				    ImageType = imageType
+			    };
+		    }).ToList();
 
-            return Ok(listOfProductViews);
-        }
+		    return Ok(listOfProductViews);
+	    }
 
-        return BadRequest("A problem loading products occured");
+	    return BadRequest("A problem loading products occurred");
     }
+
+	[HttpGet("getImage/{id}")]
+	public async Task<IActionResult> GetImage(Guid id)
+	{
+		var product = await _databaseContext.Products.FindAsync(id);
+		if (product == null)
+		{
+			return NotFound();
+		}
+
+		var imageType = Path.GetExtension(product.ImagePath).Replace(".", "");
+		var imageBytes = await System.IO.File.ReadAllBytesAsync(product.ImagePath);
+
+		var contentType = imageType switch
+		{
+			"jpeg" => "image/jpeg",
+			"jpg" => "image/jpeg",
+			"png" => "image/png",
+			"webp" => "image/webp",
+			_ => "image/jpeg"
+		};
+
+		return File(imageBytes, contentType);
+	}
+
+
 }
