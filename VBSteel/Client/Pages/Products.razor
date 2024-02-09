@@ -1,0 +1,83 @@
+﻿@page "/products"
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@using VBSteel.Shared
+@using VBSteel.Client.Pages.Components
+
+<div class="container text-center">
+    <div class="row">
+        <div class="col-12">
+            <h1>All Products</h1>
+            <input type="text" @oninput="FilterProducts" placeholder="Filter by name" />
+        </div>
+    </div>
+
+    @{
+        if (_groupedProductViews == null)
+        {
+            <div>Loading...</div>
+        }
+        else
+        {
+            foreach (var group in _groupedProductViews)
+            {
+                <div class="row py-5">
+                    @foreach (var product in group)
+                    {
+                        <ProductView Product="@product"/>
+                    }
+                </div>
+            }
+        }
+    }
+</div>
+
+@code
+{
+    private List<ProductViewModel>? _productViews;
+    private List<List<ProductViewModel>>? _groupedProductViews;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts(string filter = "")
+    {
+        var response = await HttpClient.GetAsync("api/Product/productView");
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Error: {response.StatusCode}");
+            return;
+        }
+
+        _productViews = await response.Content.ReadFromJsonAsync<List<ProductViewModel>>();
+        if (_productViews == null)
+        {
+            NavigationManager.NavigateTo("/404");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(filter))
+        {
+            _productViews = _productViews.Where(p => p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        _groupedProductViews = GroupProductViews(_productViews, 3);
+    }
+
+    private List<List<ProductViewModel>> GroupProductViews(List<ProductViewModel> views, int groupSize)
+    {
+        var groups = new List<List<ProductViewModel>>();
+        for (int i = 0; i < views.Count; i += groupSize)
+        {
+            groups.Add(views.GetRange(i, Math.Min(groupSize, views.Count - i)));
+        }
+        return groups;
+    }
+
+    private async Task FilterProducts(ChangeEventArgs e)
+    {
+        await LoadProducts(e.Value.ToString());
+    }
+}
