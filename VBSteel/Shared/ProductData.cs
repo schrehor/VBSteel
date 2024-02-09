@@ -16,7 +16,7 @@ public class Product
     [Required, StringLength(1000)]
     public string Description { get; set; }
 
-    [Required, StringLength(200)]
+    [Required, StringLength(100)]
     public string Name { get; set; }
 
     public User User { get; set; }
