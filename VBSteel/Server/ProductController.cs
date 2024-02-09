@@ -77,7 +77,9 @@ public class ProductController : Controller
 			    {
 				    Name = p.Name,
 				    ImageData = imageData,
-				    ImageType = imageType
+				    ImageType = imageType,
+                    ProductId = p.ProductId,
+                    Description = p.Description
 			    };
 		    }).ToList();
 
@@ -87,29 +89,29 @@ public class ProductController : Controller
 	    return BadRequest("A problem loading products occurred");
     }
 
-	[HttpGet("getImage/{id}")]
-	public async Task<IActionResult> GetImage(Guid id)
-	{
-		var product = await _databaseContext.Products.FindAsync(id);
-		if (product == null)
-		{
-			return NotFound();
-		}
+    [HttpGet("{productName}")]
+    public async Task<ActionResult<ProductViewModel>> GetProductByName(string productName)
+    {
+	    var product = await _databaseContext.Products.FirstOrDefaultAsync(p => p.Name == productName);
+	    if (product == null)
+	    {
+		    return NotFound();
+	    }
 
-		var imageType = Path.GetExtension(product.ImagePath).Replace(".", "");
-		var imageBytes = await System.IO.File.ReadAllBytesAsync(product.ImagePath);
+	    var imageType = Path.GetExtension(product.ImagePath).Replace(".", "");
+	    var imageData = await System.IO.File.ReadAllBytesAsync(product.ImagePath);
 
-		var contentType = imageType switch
-		{
-			"jpeg" => "image/jpeg",
-			"jpg" => "image/jpeg",
-			"png" => "image/png",
-			"webp" => "image/webp",
-			_ => "image/jpeg"
-		};
+	    var productViewModel = new ProductViewModel
+	    {
+		    Name = product.Name,
+		    ImageData = imageData,
+		    ImageType = imageType,
+		    ProductId = product.ProductId,
+		    Description = product.Description
+	    };
 
-		return File(imageBytes, contentType);
-	}
+	    return Ok(productViewModel);
+    }
 
 
 }
