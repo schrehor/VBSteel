@@ -10,7 +10,7 @@ public class Product
     [Required]
     public Guid UserId { get; set; }
 
-    [StringLength(255)]
+    [Required]
     public string ImagePath { get; set; }
 
     [Required, StringLength(1000)]
@@ -19,5 +19,5 @@ public class Product
     [Required, StringLength(100)]
     public string Name { get; set; }
 
-    public User User { get; set; }
+    public User? User { get; set; }
 }

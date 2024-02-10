@@ -1,12 +1,93 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient HttpClient
+@inject AuthenticationProvider AuthenticationProvider
+@inject AuthorizedHttpClient AuthorizedHttpClient
 @using VBSteel.Shared
 
-<div class="col-12 col-md-4 text-center">
-	<img src="@($"data:image/{Product.ImageType};base64,{Convert.ToBase64String(Product.ImageData)}")" alt="@Product.Name">
-	<div>@Product.Name</div>
-	<a href="@($"/products/{Product.Name}")" class="btn btn-outline-secondary my-2">Zistiť viac</a>
-</div>
+<h3>ProductEditor</h3>
+
+@foreach (var product in _products)
+{
+    <div>
+        @if (product.ProductId != _editingProductId)
+        {
+            <p>Name: @product.Name</p>
+            <p>Description: @product.Description</p>
+            <button @onclick="() => StartEditing(product)">Edit</button>
+        }
+        else
+        {
+            <EditForm Model="_editedProduct" OnValidSubmit="UpdateProduct">
+	            <DataAnnotationsValidator />
+	            <ValidationSummary />
+                <p>
+                    <label for="name">Name:</label>
+                    <InputText id="name" @bind-Value="_editedProduct.Name" />
+                </p>
+                <p>
+	                <label for="description">Description:</label>
+	                <InputTextArea id="description" @bind-Value="_editedProduct.Description" />
+                </p>
+                <button type="submit">Save</button>
+            </EditForm>
+        }
+        <button @onclick="() => DeleteProduct(product.ProductId)">Delete</button>
+    </div>
+}
 
 @code {
-	[Parameter]
-	public ProductViewModel Product { get; set; }
+    private List<Product> _products = new();
+    private Guid _editingProductId;
+    private Product _editedProduct = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await HttpClient.GetFromJsonAsync<List<Product>>("api/Product/products");
+        if (response != null)
+        {
+            _products = response;
+        }
+    }
+
+    private void StartEditing(Product product)
+    {
+        _editingProductId = product.ProductId;
+        _editedProduct = new Product
+            {
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Description = product.Description,
+				ImagePath = product.ImagePath,
+            };
+    }
+
+    private async Task UpdateProduct()
+    {
+        var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Product/UpdateProduct", _editedProduct);
+        if (response.IsSuccessStatusCode)
+        {
+            // Refresh the list of products
+            var productsResponse = await HttpClient.GetFromJsonAsync<List<Product>>("api/Product/productView");
+            if (productsResponse != null)
+            {
+                _products = productsResponse;
+            }
+            _editingProductId = Guid.Empty;
+        }
+    }
+
+    private async Task DeleteProduct(Guid productId)
+    {
+        var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Product/DeleteProduct", productId);
+        if (response.IsSuccessStatusCode)
+        {
+            // Refresh the list of products
+            var productsResponse = await HttpClient.GetFromJsonAsync<List<Product>>("api/Product/productView");
+            if (productsResponse != null)
+            {
+                _products = productsResponse;
+            }
+        }
+    }
 }

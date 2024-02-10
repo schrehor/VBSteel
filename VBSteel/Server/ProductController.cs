@@ -89,6 +89,18 @@ public class ProductController : Controller
 	    return BadRequest("A problem loading products occurred");
     }
 
+    [HttpGet("products")]
+    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    {
+        var allProducts = await _databaseContext.Products.ToListAsync();
+        if (allProducts.Count > 0)
+        {
+            return Ok(allProducts);
+        }
+
+        return BadRequest("A problem loading products occurred");
+    }
+
     [HttpGet("{productName}")]
     public async Task<ActionResult<ProductViewModel>> GetProductByName(string productName)
     {
@@ -113,5 +125,39 @@ public class ProductController : Controller
 	    return Ok(productViewModel);
     }
 
+    [HttpPost("DeleteProduct")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> DeleteProduct([FromBody] Guid productId)
+    {
+        var product = await _databaseContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+        if (product == null)
+        {
+            return NotFound("The product does not exist.");
+        }
+
+        _databaseContext.Products.Remove(product);
+        await _databaseContext.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("UpdateProduct")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> UpdateProduct([FromBody] Product updatedProduct)
+    {
+        var product = await _databaseContext.Products.FirstOrDefaultAsync(p => p.ProductId == updatedProduct.ProductId);
+        if (product == null)
+        {
+            return NotFound("The product does not exist.");
+        }
+
+        product.Name = updatedProduct.Name;
+        product.Description = updatedProduct.Description;
+
+        _databaseContext.Products.Update(product);
+        await _databaseContext.SaveChangesAsync();
+
+        return Ok();
+    }
 
 }
