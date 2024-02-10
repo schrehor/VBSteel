@@ -46,7 +46,18 @@ public class AuthenticationProvider : AuthenticationStateProvider
         return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", AuthTokenKey);
     }
 
-    public UserRole DetermineUserRole()
+    public Guid GetUserId()
+    {
+	    var userIdClaim = _user?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+	    if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+	    {
+		    return userId;
+	    }
+
+	    return Guid.Empty;
+    }
+
+public UserRole DetermineUserRole()
     {
 	    if (_user is null)
 	    {

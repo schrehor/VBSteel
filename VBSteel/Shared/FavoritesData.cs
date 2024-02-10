@@ -13,6 +13,12 @@ public class Favorite
     [Required]
     public Guid ProductId { get; set; }
 
-    public User User { get; set; }
-    public Product Product { get; set; }
+    public User? User { get; set; }
+    public Product? Product { get; set; }
+}
+public class ProductFavoriteCount
+{
+    public Guid ProductId { get; set; }
+    public string ProductName { get; set; }
+    public int Count { get; set; }
 }

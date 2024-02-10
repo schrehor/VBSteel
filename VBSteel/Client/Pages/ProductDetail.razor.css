@@ -1,0 +1,7 @@
+﻿.btn-outline-danger:hover .bi-heart {
+    display: none;
+}
+
+.btn-outline-danger:hover .bi-heart-fill {
+    display: inline-block;
+}

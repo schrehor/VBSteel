@@ -1,30 +1,82 @@
 ﻿@page "/products/{ProductName}"
 @inject HttpClient HttpClient
+@inject AuthenticationProvider AuthenticationProvider
+@inject AuthorizedHttpClient AuthorizedHttpClient
 @using VBSteel.Shared
 
 <div class="container">
-	<div class="row">
-		<div class="col-md-6">
-			<img src="@(Product != null ? $"data:image/{Product.ImageType};base64,{Convert.ToBase64String(Product.ImageData)}" : string.Empty)" alt="@Product?.Name">
-
-		</div>
-		<div class="col-md-6">
-			<h1>@Product?.Name</h1>
-		</div>
-	</div>
-	<div>
-		<p>@Product?.Description</p>
-		<a href="/contact" class="btn btn-primary">Contact Us</a>
-	</div>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@(Product != null ? $"data:image/{Product.ImageType};base64,{Convert.ToBase64String(Product.ImageData)}" : string.Empty)" alt="@Product?.Name">
+        </div>
+        <div class="col-md-6">
+            <h1>@Product?.Name</h1>
+        </div>
+    </div>
+    <div>
+        <p>@Product?.Description</p>
+        <a href="/contact" class="btn btn-primary">Contact Us</a>
+        @if (_isUserLoggedIn && AuthenticationProvider.DetermineUserRole() == UserRole.RegularUser)
+        {
+            <button class="btn btn-outline-danger" @onclick="ToggleFavorite">
+                <i class="@(_isFavorite ? "bi bi-heart-fill" : "bi bi-heart")"></i>
+            </button>
+        }
+    </div>
 </div>
 
 @code {
-	//Todo loading
-	[Parameter] public string? ProductName { get; set; }
-	private ProductViewModel? Product { get; set; }
+    [Parameter] public string? ProductName { get; set; }
+    private ProductViewModel? Product { get; set; }
+    private bool _isUserLoggedIn;
+    private bool _isFavorite;
 
-	protected override async Task OnInitializedAsync()
-	{
-		Product = await HttpClient.GetFromJsonAsync<ProductViewModel>($"api/product/{ProductName}");
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity != null)
+            _isUserLoggedIn = user.Identity.IsAuthenticated;
+
+        Product = await HttpClient.GetFromJsonAsync<ProductViewModel>($"api/product/{ProductName}");
+
+        if (_isUserLoggedIn)
+        {
+            _isFavorite = await CheckIfFavorite();
+        }
+    }
+
+    private async Task<bool> CheckIfFavorite()
+    {
+        var response = await AuthorizedHttpClient.GetAsync($"api/Favorites/IsFavorite?userId={AuthenticationProvider.GetUserId()}&productId={Product?.ProductId}");
+        return response.IsSuccessStatusCode && await response.Content.ReadFromJsonAsync<bool>();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (_isFavorite)
+        {
+            // Send a request to remove the product from the favorites
+            var response = await AuthorizedHttpClient.DeleteAsync($"api/Favorites/Delete?userId={AuthenticationProvider.GetUserId()}&productId={Product?.ProductId}");
+            if (response.IsSuccessStatusCode)
+            {
+                _isFavorite = false;
+            }
+        }
+        else
+        {
+            // Send a request to add the product to the favorites
+            var favorite = new Favorite
+                {
+                    FavoriteId = Guid.NewGuid(),
+                    UserId = AuthenticationProvider.GetUserId(),
+                    ProductId = Product?.ProductId ?? Guid.Empty
+                };
+            var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Favorites/Add", favorite);
+            if (response.IsSuccessStatusCode)
+            {
+                _isFavorite = true;
+            }
+        }
+    }
 }

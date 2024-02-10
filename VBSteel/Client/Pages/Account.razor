@@ -4,32 +4,59 @@
 @using VBSteel.Shared
 @using VBSteel.Client.Pages.Components
 
-<div class="stretch-content-fullscreen">
-	<h3>Môj účet</h3>
-	@if (!_isUserLoggedIn)
-	{
-		<p>Please log in to view this page.</p>
-	}
-	else
-	{
-		<MessageView UserRole="@_userRole" />
-	}
+<div class="row">
+    <div class="col-3">
+        <div class="sticky-top">
+            <h3>Môj účet</h3>
+            @if (_isUserLoggedIn)
+            {
+                <div class="list-group">
+                    <button class="list-group-item list-group-item-action" @onclick='() => selectedComponent = "messages"'>Messages</button>
+                    <button class="list-group-item list-group-item-action" @onclick='() => selectedComponent = "favorites"'>Favorites</button>
+                    @if (_userRole == UserRole.Admin)
+                    {
+                        <button class="list-group-item list-group-item-action" @onclick='() => selectedComponent = "createProduct"'>Create Product</button>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>Please log in to view this page.</p>
+            }
+        </div>
+    </div>
+    <div class="col-9">
+        @if (_isUserLoggedIn)
+        {
+            @if (selectedComponent == "messages")
+            {
+                <MessageView UserRole="@_userRole" />
+            }
+            else if (selectedComponent == "favorites")
+            {
+	            <FavoritesView />
+            }
+            else if (selectedComponent == "createProduct" && _userRole == UserRole.Admin)
+            {
+                <ProductCreator />
+            }
+        }
+    </div>
 </div>
 
 @code {
     private bool _isUserLoggedIn;
     private UserRole _userRole;
+    private string selectedComponent = "messages";
 
-	protected override async Task OnInitializedAsync()
-	{
-		var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
-		var user = authState.User;
-		if (user.Identity != null)
-			_isUserLoggedIn = user.Identity.IsAuthenticated;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity != null)
+            _isUserLoggedIn = user.Identity.IsAuthenticated;
 
-		if (_isUserLoggedIn)
-			_userRole = AuthenticationProvider.DetermineUserRole();
-
-	}
+        if (_isUserLoggedIn)
+            _userRole = AuthenticationProvider.DetermineUserRole();
+    }
 }
-
