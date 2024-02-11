@@ -11,12 +11,12 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavSmall">
             <div class="navbar-nav">
-                <button class="nav-item nav-link" @onclick='() => selectedComponent = "messages"'>Messages</button>
-                <button class="nav-item nav-link" @onclick='() => selectedComponent = "favorites"'>Favorites</button>
+                <button class="nav-item nav-link" @onclick='() => selectedComponent = "messages"'>Správy</button>
+                <button class="nav-item nav-link" @onclick='() => selectedComponent = "favorites"'>Obľubené</button>
                 @if (_userRole == UserRole.Admin)
                 {
-                    <button class="nav-item nav-link" @onclick='() => selectedComponent = "createProduct"'>Create Product</button>
-                    <button class="nav-item nav-link" @onclick='() => selectedComponent = "productView"'>Product Viewer</button>
+                    <button class="nav-item nav-link" @onclick='() => selectedComponent = "createProduct"'>Vytvor produkt</button>
+                    <button class="nav-item nav-link" @onclick='() => selectedComponent = "productView"'>Prehliadač produktov</button>
                 }
             </div>
         </div>
