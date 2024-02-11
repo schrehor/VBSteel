@@ -1,6 +1,15 @@
 .menu {
-    background-color: #8592a0;
+    background-color: #14213d; 
 }
+
+.menu .special-nav-item {
+    color: #ffffff; 
+}
+
+.menu .special-nav-item:hover, .menu .special-nav-item.active {
+    color: #fca311; 
+}
+
 
 .logo {
     width: 45px;
@@ -9,6 +18,7 @@
 
 h1 {
     text-align: center;
+    color: #262626; 
 }
 
 .container img {
@@ -19,24 +29,12 @@ h1 {
 }
 
 .gray-back {
-    background-color: #e2eaf1;
+    background-color: #cccee0; 
 }
 
 .column-text p {
     padding-left: 20px;
-}
-
-.pic-back::before {
-    content: "";
-    pointer-events: none;
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.5;
-    background-image: url("images/pozadicko.jpeg");
+    color: #262626; 
 }
 
 .bold {
@@ -45,6 +43,7 @@ h1 {
 
 .big-text {
     font-size: 20px;
+    color: #262626; 
 }
 
 .aligned-text{
@@ -54,7 +53,11 @@ h1 {
 }
 
 ::selection {
-    background-color: darkorange;
+    background-color: #fca311; 
+}
+
+.menu .nav-item .nav-link.active {
+    color: #fca311; 
 }
 
 .site-container {
@@ -76,7 +79,6 @@ h1 {
     text-align: center;
     background: linear-gradient(145deg, #c0c0c0, #9c9c9c);
     color: #333;
-    font-family: 'Arial', sans-serif;
 }
 
 .error-title {
@@ -105,6 +107,8 @@ h1 {
 
 header, footer {
     flex-shrink: 0;
+    background-color: #000000; 
+    color: #ffffff; 
 }
 
 .login-form-container {
@@ -128,4 +132,62 @@ header, footer {
 
 .validation-message {
     color: red;
+}
+
+.image-container {
+    width: 90%; 
+    height: 250px; 
+    overflow: hidden; 
+    margin: 0 auto;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@keyframes fade {
+    0%, 100% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.loading-dots-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+}
+
+.dot {
+    width: 16px;
+    height: 16px;
+    margin: 0 4px;
+    background-color: #007bff;
+    border-radius: 50%;
+    animation: fade 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.no-overflow-x {
+    overflow-x: hidden
 }
