@@ -5,54 +5,80 @@
 @using System.Linq.Expressions
 @inject AuthorizedHttpClient AuthorizedHttpClient
 
-@if (success)
+@if (_success)
 {
 	<div class="alert alert-success" role="alert">
 		Produkt bol vytvorený.
 	</div>
 }
-<EditForm Model="@_newProduct" OnValidSubmit="@HandleValidSubmit">
-	<DataAnnotationsValidator />
-	<ValidationSummary />
+@if (_error)
+{
+	<div class="alert alert-danger" role="alert">
+		Produkt sa nepodarilo vytvoriť.
+	</div>
+}
+<div class="login-form-container">
+    <EditForm class="login-form" Model="@_newProduct" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-	<InputText id="name" @bind-Value="_newProduct.Name" placeholder="Product Name" />
-	<InputText id="description" @bind-Value="_newProduct.Description" placeholder="Product Description" />
-	<InputFile id="image" OnChange="@HandleFileSelected" />
+        <div class="form-group">
+            <label for="name">Názov produktu</label>
+            <InputText id="name" class="form-control" @bind-Value="_newProduct.Name" />
+        </div>
+        <div class="form-group">
+            <label for="description">Popis produktu</label>
+            <InputText id="description" class="form-control" @bind-Value="_newProduct.Description"/>
+        </div>
+        <div class="form-group">
+            <label for="image">Obrázok produktu</label>
+            <InputFile id="image" class="form-control-file" OnChange="@HandleFileSelected" />
+        </div>
 
-	<button type="submit">Create</button>
-</EditForm>
+        <button type="submit" class="btn btn-outline-secondary my-2">Vytvor produkt</button>
+    </EditForm>
+</div>
 
 @code {
-	private ProductInputModel _newProduct = new();
-	private bool success = false;
+    private ProductInputModel _newProduct = new();
+    private bool _success;
+    private bool _error;
 
-	private async Task HandleValidSubmit()
-	{
-		try
-		{
-			var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Product/CreateProduct", _newProduct);
-			if (response.IsSuccessStatusCode)
-			{
-				success = true;
-			}
-			else
-			{
-				var error = await response.Content.ReadAsStringAsync();
-				Console.WriteLine($"Error: {error}");
-			}
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Exception: {ex.Message}");
-		}
-	}
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Product/CreateProduct", _newProduct);
+            if (response.IsSuccessStatusCode)
+            {
+                _success = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                _success = false;
+            }
+            else
+            {
+	            _error = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                _error = false;
+            }
+        }
+        catch (Exception ex)
+        {
+	        _error = true;
+            StateHasChanged();
+            await Task.Delay(2000);
+            _error = false;
+        }
+    }
 
-	private async void HandleFileSelected(InputFileChangeEventArgs e)
-	{
-		var selectedFile = e.File;
-		var memoryStream = new MemoryStream();
-		await selectedFile.OpenReadStream().CopyToAsync(memoryStream);
-		_newProduct.ImageData = memoryStream.ToArray();
-		_newProduct.ImageType = selectedFile.ContentType.Split('/')[1];
-	}
+    private async void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var selectedFile = e.File;
+        var memoryStream = new MemoryStream();
+        await selectedFile.OpenReadStream().CopyToAsync(memoryStream);
+        _newProduct.ImageData = memoryStream.ToArray();
+        _newProduct.ImageType = selectedFile.ContentType.Split('/')[1];
+    }
 }

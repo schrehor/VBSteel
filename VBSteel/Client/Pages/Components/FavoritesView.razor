@@ -4,28 +4,48 @@
 
 @if (_isUserLoggedIn)
 {
-    @if (_userRole == UserRole.Admin)
-    {
-        <h3>Favorite Statistics</h3>
-        @foreach (var favoriteCount in _favoriteCounts)
-        {
-	        <div style="margin-bottom: 1em; padding: 1em; border: 1px solid #ddd;">
-		        <p>Product Name: @favoriteCount.ProductName</p>
-		        <p>Favorites: @favoriteCount.Count</p>
-	        </div>
-        }
-    }
-    else
-    {
-        <h3>My Favorites</h3>
-        @foreach (var product in _favoriteProducts)
-        {
-            <div>
-                <p>@product.Name</p>
-                <button @onclick="() => RemoveFavorite(product.ProductId)">Remove from favorites</button>
-            </div>
-        }
-    }
+	@if (_userRole == UserRole.Admin)
+	{
+		<h3>Štatistika obľúbenosti</h3>
+		if (_favoriteCounts is null)
+		{
+			<p>Zatiaľ žiadna štatistika</p>
+		}
+		else
+		{
+			@foreach (var favoriteCount in _favoriteCounts)
+			{
+				<div class="card mb-3">
+					<div class="card-body">
+						<h5 class="card-title">@favoriteCount.ProductName</h5>
+						<p class="card-text">Počet: @favoriteCount.Count</p>
+					</div>
+				</div>
+			}
+		}
+	}
+	else
+	{
+		<h3>Moje obľúbené produtky</h3>
+		if (_favoriteProducts is null)
+		{
+			<p>Žiadne obľúbené produkty</p>
+		}
+		else
+		{
+			@foreach (var product in _favoriteProducts)
+			{
+				<div class="card mb-3">
+					<div class="card-body">
+						<h5 class="card-title">@product.Name</h5>
+						<button class="btn btn-outline-danger m-2" @onclick="() => RemoveFavorite(product.ProductId)">
+							<i class="bi bi-heart-fill"></i>
+						</button>
+					</div>
+				</div>
+			}
+		}
+	}
 }
 else
 {
@@ -35,8 +55,8 @@ else
 @code {
     private bool _isUserLoggedIn;
     private UserRole _userRole;
-    private List<Product> _favoriteProducts = new();
-    private List<ProductFavoriteCount> _favoriteCounts = new();
+    private List<Product>? _favoriteProducts;
+    private List<ProductFavoriteCount>? _favoriteCounts;
 
     protected override async Task OnInitializedAsync()
     {

@@ -3,93 +3,73 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 <div class="stretch-content-fullscreen">
-    <h3>Messages</h3>
+    <h3>Správy</h3>
     @if (_internalError)
     {
-        <p>An error occurred while loading the messages.</p>
+        <div class="alert alert-danger" role="alert">
+            Nastala neočakávaná chyba.
+        </div>
     }
     else if (_messages == null)
     {
-        <p>Loading...</p>
+	    <LoadingAnimation/>
     }
     else if (_messages.Count == 0)
     {
-        <p>No messages to display.</p>
+        <div class="alert alert-warning" role="alert">
+            Používateľ nemá žiadne správy.
+        </div>
     }
     else
     {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Number</th>
-                    <th>Email</th>
-                    <th>Message</th>
-                    <th>Sender</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            @for (var i = 0; i < _messages.Count; i++)
-            {
-	            var message = _messages[i];
-	            <tr>
-		            <td>@(i + 1)</td>
-		            @if (message == _editingMessage)
-		            {
-			            var editContext = _editContexts[message];
-			            <td>
-				            <EditForm EditContext="editContext">
-					            <DataAnnotationsValidator />
-					            <ValidationMessage For="@(() => _editingFormModel.Email)" />
-					            <InputText @bind-Value="_editingFormModel.Email" />
-				            </EditForm>
-			            </td>
-			            <td>
-				            <EditForm EditContext="editContext">
-					            <ValidationMessage For="@(() => _editingFormModel.Message)" />
-					            <InputTextArea @bind-Value="_editingFormModel.Message" style="width:100%; height:auto;" />
-				            </EditForm>
-			            </td>
-			            <td>
-				            @if (message.User != null)
-				            {
-					            @(@message.User.Name + " " + @message.User.Surname)
-				            }
-			            </td>
-			            <td>
-				            <button class="btn btn-success" @onclick="() => SaveChanges(message)">Save</button>
-				            <button class="btn btn-secondary" @onclick="() => CancelEditing(message)">Cancel</button>
-			            </td>
-		            }
-		            else
-		            {
-			            <td>@message.Email</td>
-			            <td>@message.Message</td>
-			            <td>
-				            @if (message.User != null)
-				            {
-					            @(@message.User.Name + " " + @message.User.Surname)
-				            }
-			            </td>
-			            <td>
-				            <button class="btn btn-primary" @onclick="() => StartEditingMessage(message)">Edit</button>
-				            <button class="btn btn-danger" @onclick="() => DeleteMessage(message)">Delete</button>
-			            </td>
-		            }
-	            </tr>
-            }
-            </tbody>
-        </table>
+        @foreach (var message in _messages)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    @if (_editingMessage == message)
+                    {
+                        <EditForm Model="_editingMessage" OnValidSubmit="SaveChanges">
+                            <DataAnnotationsValidator />
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <InputText id="email" class="form-control" @bind-Value="_editingMessage.Email" />
+                                <ValidationMessage For="@(() => _editingMessage.Email)" class="validation-message" />
+                            </div>
+                            <div class="form-group">
+	                            <label for="message">Správa</label>
+                                <InputTextArea id="message" class="form-control mb-3" @bind-Value="_editingMessage.Message" />
+                                <ValidationMessage For="@(() => _editingMessage.Message)" class="validation-message" />
+                            </div>
+                            <button type="submit" class="btn btn-success">Ulož</button>
+                            <button type="button" class="btn btn-secondary" @onclick="CancelEditing">Zruš zmeny</button>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <h5 class="card-title">@message.Email</h5>
+                        <p class="card-text">@message.Message</p>
+                        <button class="btn btn-primary" @onclick="() => StartEditingMessage(message)">Uprav</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteMessage(message)">Vymaž</button>
+                    }
+                    <p class="card-text">
+                        <small class="text-muted">
+                            @if (message.User != null)
+                            {
+                                @(@message.User.Name + " " + @message.User.Surname)
+                            }
+                        </small>
+                    </p>
+                </div>
+            </div>
+        }
     }
 </div>
 
 @code {
     [Parameter] public UserRole UserRole { get; set; }
     private Form? _editingMessage;
-    private FormModel _editingFormModel = new();
     private List<Form>? _messages;
     private bool _internalError;
-    private Dictionary<Form, EditContext> _editContexts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,33 +116,22 @@
     private void StartEditingMessage(Form message)
     {
         _editingMessage = message;
-        _editingFormModel.Email = message.Email;
-        _editingFormModel.Message = message.Message;
-        if (!_editContexts.ContainsKey(message))
-        {
-            _editContexts[message] = new EditContext(_editingFormModel);
-        }
     }
 
-    private async Task SaveChanges(Form message)
+    private async Task SaveChanges()
     {
-        var editContext = _editContexts[message];
-        if (editContext.Validate())
+        var response = await AuthorizedHttpClient.PutAsJsonAsync($"api/form/updateForm/{_editingMessage.FormId}", _editingMessage);
+        if (response.IsSuccessStatusCode)
         {
-            var response = await AuthorizedHttpClient.PutAsJsonAsync($"api/form/updateForm/{message.FormId}", _editingFormModel);
-            if (response.IsSuccessStatusCode)
-            {
-                // Refresh the messages list
-                await LoadMessages(UserRole);
-                CancelEditing(message);
-            }
+            // Refresh the messages list
+            await LoadMessages(UserRole);
+            CancelEditing();
         }
     }
 
-    private void CancelEditing(Form message)
+    private void CancelEditing()
     {
         _editingMessage = null;
-        _editContexts.Remove(message);
     }
 
     private async Task DeleteMessage(Form message)
@@ -172,6 +141,10 @@
         {
             // Refresh the messages list
             await LoadMessages(UserRole);
+        }
+        else
+        {
+            _internalError = true;
         }
     }
 }

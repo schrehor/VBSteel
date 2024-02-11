@@ -9,31 +9,40 @@
 
 @foreach (var product in _products)
 {
-    <div>
-        @if (product.ProductId != _editingProductId)
-        {
-            <p>Name: @product.Name</p>
-            <p>Description: @product.Description</p>
-            <button @onclick="() => StartEditing(product)">Edit</button>
-        }
-        else
-        {
-            <EditForm Model="_editedProduct" OnValidSubmit="UpdateProduct">
-	            <DataAnnotationsValidator />
-	            <ValidationSummary />
-                <p>
-                    <label for="name">Name:</label>
-                    <InputText id="name" @bind-Value="_editedProduct.Name" />
-                </p>
-                <p>
-	                <label for="description">Description:</label>
-	                <InputTextArea id="description" @bind-Value="_editedProduct.Description" />
-                </p>
-                <button type="submit">Save</button>
-            </EditForm>
-        }
-        <button @onclick="() => DeleteProduct(product.ProductId)">Delete</button>
-    </div>
+	<div class="card mb-3">
+		<div class="card-body">
+			@if (product.ProductId != _editingProductId)
+			{
+				<h5 class="card-title">@product.Name</h5>
+				<p class="card-text">@product.Description</p>
+				<button class="btn btn-primary" @onclick="() => StartEditing(product)">Edit</button>
+				<button class="btn btn-danger" @onclick="() => DeleteProduct(product.ProductId)">Delete</button>
+			}
+			else
+			{
+				<EditForm Model="_editedProduct" OnValidSubmit="UpdateProduct">
+					<DataAnnotationsValidator />
+					<div class="form-group">
+						<label for="name">Názov:</label>
+                        <InputText id="name" class="form-control" @bind-Value="_editedProduct.Name" />
+                        <ValidationMessage For="@(() => _editedProduct.Name)" class="validation-message" />
+					</div>
+					<div class="form-group">
+						<label for="description">Popis:</label>
+                        <InputTextArea id="description" class="form-control" @bind-Value="_editedProduct.Description" />
+                        <ValidationMessage For="@(() => _editedProduct.Description)" class="validation-message" />
+					</div>
+					<div class="form-group">
+						<label for="imagePath">Cesta k obrázku:</label>
+                        <InputText id="imagePath" class="form-control mb-3" @bind-Value="_editedProduct.ImagePath" readonly />
+                        <ValidationMessage For="@(() => _editedProduct.ImagePath)" class="validation-message" />
+					</div>
+					<button type="submit" class="btn btn-success" >Save</button>
+					<button type="button" class="btn btn-secondary" @onclick="CancelEditing">Cancel</button>
+				</EditForm>
+			}
+		</div>
+	</div>
 }
 
 @code {
@@ -62,13 +71,18 @@
             };
     }
 
+    private void CancelEditing()
+	{
+		_editingProductId = Guid.Empty;
+	}
+
     private async Task UpdateProduct()
     {
         var response = await AuthorizedHttpClient.PostAsJsonAsync("api/Product/UpdateProduct", _editedProduct);
         if (response.IsSuccessStatusCode)
         {
             // Refresh the list of products
-            var productsResponse = await HttpClient.GetFromJsonAsync<List<Product>>("api/Product/productView");
+            var productsResponse = await HttpClient.GetFromJsonAsync<List<Product>>("api/Product/products");
             if (productsResponse != null)
             {
                 _products = productsResponse;
