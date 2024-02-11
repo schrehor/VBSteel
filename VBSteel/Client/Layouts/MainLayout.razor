@@ -5,9 +5,9 @@
 
 <main>
 	<div class="site-container">
-		<nav class="navbar navbar-expand-lg menu">
+		<nav class="navbar navbar-dark navbar-expand-lg menu">
 			<div class="container">
-				<a class="navbar-brand" href="/">
+				<a class="navbar-brand special-nav-item" href="/">
 					<img class="logo" src="images/icon.png" alt="Website Logo">
 					VBSteel
 				</a>
@@ -19,32 +19,32 @@
 				<div class="collapse navbar-collapse" id="navbarNav">
 					<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/products">Produkty</NavLink>
+							<NavLink class="nav-link special-nav-item" href="/tovar">Tovar</NavLink>
 						</li>
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/about">O Nás</NavLink>
+							<NavLink class="nav-link special-nav-item" href="/o-nas">O Nás</NavLink>
 						</li>
 						<li class="nav-item">
-							<NavLink class="nav-link" href="/contact">Kontakt</NavLink>
+							<NavLink class="nav-link special-nav-item" href="/kontakt">Kontakt</NavLink>
 						</li>
 					</ul>
 					<div class="d-flex">
 						@if (isUserLoggedIn)
 						{
-							<NavLink class="btn btn-outline-primary ms-auto" href="/account">Účet</NavLink>
-							<button class="btn btn-outline-success ms-2" @onclick="LogOut">Odhlasiť sa</button>
+							<NavLink class="btn btn-outline-warning ms-auto" href="/ucet">Účet</NavLink>
+							<button class="btn btn-outline-danger ms-2" @onclick="LogOut">Odhlasiť sa</button>
 						}
 						else
 						{
-							<button class="btn btn-outline-success ms-auto" @onclick="NavigateToLogin">Prihlásiť sa</button>
-                            <NavLink class="btn btn-outline-primary ms-2" href="/register">Registrovať sa</NavLink>
+							<NavLink class="btn btn-outline-warning ms-aut" href="/prihlasenie">Prihlásiť sa</NavLink>
+							<NavLink class="btn btn-outline-danger ms-2" href="/registracia">Registrovať sa</NavLink>
 						}
 					</div>
 				</div>
 			</div>
 		</nav>
 		@Body
-		<footer class="bg-dark text-light text-center py-3">
+		<footer class="text-center py-3">
 			&copy; @DateTime.Now.Year VBSteel. All rights reserved.
 		</footer>
 	</div>
@@ -53,6 +53,7 @@
 
 @code {
 	private bool isUserLoggedIn;
+	public string ReturnUrl { get; set; }
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -60,11 +61,10 @@
 		var user = authState.User;
 		isUserLoggedIn = user.Identity.IsAuthenticated;
 	}
-	
-	private void NavigateToLogin()
+
+	private void SaveReturnUrl()
 	{
-		var returnUrl = NavigationManager.Uri;
-		NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+		ReturnUrl = NavigationManager.Uri;
 	}
 
 	private async Task LogOut()

@@ -1,4 +1,4 @@
-@page "/login"
+@page "/prihlasenie"
 @using VBSteel.Shared
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Components.Forms
@@ -7,43 +7,36 @@
 @inject AuthenticationProvider AuthenticationProvider;
 
 <div class="stretch-content-fullscreen">
-    <div class="login-form-container">
-        <h3>Prihlásenie</h3>
-        <EditForm class="login-form" Model="@loginModel" OnValidSubmit="@ProcessLogin">
-            <DataAnnotationsValidator/>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" @bind="loginModel.Email"/>
-                <ValidationMessage For="@(() => loginModel.Email)" class="validation-message"/>
-            </div>
-            <div class="form-group">
-                <label for="password">Heslo</label>
-                <input type="password" class="form-control" id="password" @bind="loginModel.Password"/>
-                <ValidationMessage For="@(() => loginModel.Password)" class="validation-message"/>
-            </div>
-            <button type="submit" class="btn btn-outline-secondary my-2">Prihlásiť</button>
-        </EditForm>
-    </div>
+	@if (_errorMessage is not null)
+	{
+		<div class="alert alert-danger" role="alert">
+			@_errorMessage
+		</div>
+	}
+	<div class="login-form-container">
+		<h3>Prihlásenie</h3>
+		<EditForm class="login-form" Model="@loginModel" OnValidSubmit="@ProcessLogin">
+			<DataAnnotationsValidator/>
+			<div class="form-group">
+				<label for="email">Email</label>
+				<input type="email" class="form-control" id="email" @bind="loginModel.Email"/>
+				<ValidationMessage For="@(() => loginModel.Email)" class="validation-message"/>
+			</div>
+			<div class="form-group">
+				<label for="password">Heslo</label>
+				<input type="password" class="form-control" id="password" @bind="loginModel.Password"/>
+				<ValidationMessage For="@(() => loginModel.Password)" class="validation-message"/>
+			</div>
+			<button type="submit" class="btn btn-outline-secondary my-2">Prihlásiť</button>
+		</EditForm>
+	</div>
 </div>
 
 
 @code {
     private LoginViewModel loginModel = new();
-    private string returnUrl = "/";
-    private string errorMessage;
-    
-    protected override void OnInitialized()
-    {
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
-        {
-            this.returnUrl = returnUrl;
-        }
-        else
-        {
-            this.returnUrl = "/";
-        }
-    }
+    public string ReturnUrl { get; set; }
+    private string? _errorMessage;
 
     private async Task ProcessLogin(EditContext editContext)
     {
@@ -53,12 +46,12 @@
             var token = await response.Content.ReadAsStringAsync();
             await AuthenticationProvider.MarkUserAsAuthenticated(token);
 
-            NavigationManager.NavigateTo(returnUrl);
+            NavigationManager.NavigateTo("/");
         }
         else
         {
             // Handle errors, for example, show an error message
-            errorMessage = "Login failed. Please check your credentials.";
+            _errorMessage = "Zlé meno/heslo, skúste znova.";
         }
     }
 
