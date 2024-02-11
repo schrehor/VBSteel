@@ -27,6 +27,11 @@ public class ProductController : Controller
     //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateProduct(ProductInputModel inputModel)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
 
@@ -129,6 +134,11 @@ public class ProductController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteProduct([FromBody] Guid productId)
     {
+        if (productId == Guid.Empty)
+        {
+            return BadRequest("Invalid product ID.");
+        }
+
         var product = await _databaseContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
         if (product == null)
         {
@@ -145,6 +155,11 @@ public class ProductController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> UpdateProduct([FromBody] Product updatedProduct)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var product = await _databaseContext.Products.FirstOrDefaultAsync(p => p.ProductId == updatedProduct.ProductId);
         if (product == null)
         {

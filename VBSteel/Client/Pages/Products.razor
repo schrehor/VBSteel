@@ -1,27 +1,27 @@
-﻿@page "/products"
+﻿@page "/tovar"
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @using VBSteel.Shared
 @using VBSteel.Client.Pages.Components
 
-<div class="container text-center">
+<div class="container text-center stretch-content-fullscreen">
     <div class="row">
         <div class="col-12">
-            <h1>All Products</h1>
-            <input type="text" @oninput="FilterProducts" placeholder="Filter by name" />
+            <h1 class="mt-3">Celý sortiment tovaru</h1>
+            <input class="my-4" type="text" @oninput="FilterProducts" placeholder="Filtrovať podľa mena" />
         </div>
     </div>
 
     @{
         if (_groupedProductViews == null)
         {
-            <div>Loading...</div>
+            <LoadingAnimation/>
         }
         else
         {
             foreach (var group in _groupedProductViews)
             {
-                <div class="row py-5">
+                <div class="row py-4">
                     @foreach (var product in group)
                     {
                         <ProductSmallView Product="@product"/>

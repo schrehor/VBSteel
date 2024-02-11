@@ -2,26 +2,26 @@
 @inject HttpClient HttpClient
 @inject AuthenticationProvider AuthenticationProvider
 @inject AuthorizedHttpClient AuthorizedHttpClient
+@inject NavigationManager NavigationManager
 @using VBSteel.Shared
 
-<div class="container">
+<div class="container stretch-content-fullscreen my-5">
     <div class="row">
         <div class="col-md-6">
-            <img src="@(Product != null ? $"data:image/{Product.ImageType};base64,{Convert.ToBase64String(Product.ImageData)}" : string.Empty)" alt="@Product?.Name">
+            <img class="mb-3" src="@(Product != null ? $"data:image/{Product.ImageType};base64,{Convert.ToBase64String(Product.ImageData)}" : string.Empty)" alt="@Product?.Name">
         </div>
         <div class="col-md-6">
-            <h1>@Product?.Name</h1>
+	        <h1 class="mb-2">@Product?.Name</h1>
+            <hr/>
+            <p class="text-justify mb-5 mt-3">@Product?.Description</p>
+            <a href="/contact" class="btn btn-warning">Kontaktuje nás</a>
+	        @if (_isUserLoggedIn && AuthenticationProvider.DetermineUserRole() == UserRole.RegularUser)
+	        {
+                <button class="btn btn-outline-danger m-2" @onclick="ToggleFavorite">
+			        <i class="@(_isFavorite ? "bi bi-heart-fill" : "bi bi-heart")"></i>
+		        </button>
+	        }
         </div>
-    </div>
-    <div>
-        <p>@Product?.Description</p>
-        <a href="/contact" class="btn btn-primary">Contact Us</a>
-        @if (_isUserLoggedIn && AuthenticationProvider.DetermineUserRole() == UserRole.RegularUser)
-        {
-            <button class="btn btn-outline-danger" @onclick="ToggleFavorite">
-                <i class="@(_isFavorite ? "bi bi-heart-fill" : "bi bi-heart")"></i>
-            </button>
-        }
     </div>
 </div>
 
@@ -39,6 +39,10 @@
             _isUserLoggedIn = user.Identity.IsAuthenticated;
 
         Product = await HttpClient.GetFromJsonAsync<ProductViewModel>($"api/product/{ProductName}");
+        if (Product is null)
+        {
+            NavigationManager.NavigateTo("/404");
+        }
 
         if (_isUserLoggedIn)
         {

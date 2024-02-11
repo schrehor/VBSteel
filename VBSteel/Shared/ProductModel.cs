@@ -4,11 +4,11 @@ namespace VBSteel.Shared;
 public class ProductInputModel
 {
     [Required]
-    [StringLength(100, ErrorMessage = "The product name must be between 3 and 100 characters.", MinimumLength = 3)]
+    [StringLength(100)]
     public string Name { get; set; }
 
     [Required]
-    [StringLength(1000, ErrorMessage = "The product description must be between 10 and 1000 characters.", MinimumLength = 10)]
+    [StringLength(1000)]
     public string Description { get; set; }
 
     [Required]
